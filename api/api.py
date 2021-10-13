@@ -6,14 +6,27 @@ import pprint
 from flask import Flask, session, jsonify, request
 import twitch
 import urllib.parse
+from flask_graphql import GraphQLView
+from schema import schema
 
 app = Flask(__name__)
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
+app.secret_key = os.getenv('FLASK_SECRET_KEY'),
+app.add_url_rule(
+    '/graphql',
+    view_func=GraphQLView.as_view(
+        'graphql',
+        schema=schema,
+        graphiql=True # for having the GraphiQL interface
+        # get_context= lambda: {'token': session['token']}
+    )
+)
+
 BASE_URL = 'https://api.twitch.tv/helix/'
 client = ""
 xA = False
-#venv\Scripts\activate to start
-#flask run --no-debugger
+#venv\Scripts\activate to start // python activate
+#flask run --no-debugger // flask run
+
 
 def refresh_token():
     payload = {
@@ -38,7 +51,7 @@ def validate():
     return r.json()
 
 #for app access
-@app.route('/authorize',methods=['POST'])
+@app.post('/authorize')
 def authorize():
     payload = {
         'client_id': os.getenv('CLIENT_ID'),
@@ -49,24 +62,16 @@ def authorize():
     }
     url = 'https://id.twitch.tv/oauth2/token'
     r = requests.post(url, params=payload)
-    session['token'] = r.json()["access_token"]
-    session['refresh_token'] = r.json()["refresh_token"]
+    print(r.json())
+    if r.status_code != 200:
+        refresh_token()
+    else:
+        session['token'] = r.json()["access_token"]
+        session['refresh_token'] = r.json()["refresh_token"]
     client = twitch.TwitchHelix(client_id=os.getenv('CLIENT_ID'), oauth_token=session['token'])
     user = client.get_users()
     session['currentUser'] = user[0]
     return r.json()
-
-# @app.route('/authorize')
-# def authorize():
-#     payload = {
-#         'client_id': os.getenv('CLIENT_ID'),
-#         'redirect_uri':'http://localhost:3000',
-#         'response_type': "code"
-#     }
-#     url = 'https://id.twitch.tv/oauth2/authorize'
-#     r = requests.get(url, params=payload)
-#     return r.json()
-
 
 @app.route('/session')
 def get_session():
@@ -91,8 +96,13 @@ def set_user(username):
 
 @ app.route('/currentUser')
 def get_current_user():
-    client = twitch.TwitchHelix(client_id=os.getenv('CLIENT_ID'), oauth_token=session['token'])
-    user = client.get_users()
+    try:
+        client = twitch.TwitchHelix(client_id=os.getenv('CLIENT_ID'), oauth_token=session['token'])
+        user = client.get_users()
+    except requests.exceptions.HTTPError as e:
+        # return e.response.content, e.response.status_code
+        refresh_token()
+        get_current_user()
     return user[0]
 
 @ app.route('/streams')
@@ -100,54 +110,3 @@ def get_streams():
     client=twitch.TwitchHelix(client_id=os.getenv('CLIENT_ID'), oauth_token=session['token'])
     streams = client.get_streams()
     return jsonify(streams._queue)
-
-@ app.route('/follows')
-def get_follows():
-    # user_id = session.get('user_id')
-    # params = {'from_id': user_id, 'first': 100}
-    # r = requests.get(f'{BASE_URL}users/follows', params=params,
-    #                  headers=get_headers())
-    # return r.json()
-    # session['follows'] = r.json()['data']  # .append(follows2)
-
-    # if r.json()['pagination']['cursor']:
-    #     params = {'from_id': user_id, 'first': 100,
-    #               'after': r.json()['pagination']['cursor']}
-    #     r = requests.get(f'{BASE_URL}users/follows', params=params,
-    #                      headers=get_headers())
-    #     session['follows'] = session['follows'] + r.json()['data']
-    print(session['token'])
-    try:
-        client = twitch.TwitchHelix(client_id=os.getenv('CLIENT_ID'), oauth_token=session['token'])
-        cursor = client.get_user_follows(page_size=100,from_id=(session.get('currentUser')['id']))
-        follows = cursor._queue
-        while follows.__len__() != cursor.total:
-            follows.extend(cursor.next_page())
-    except requests.exceptions.HTTPError:
-        refresh_token()
-        return get_follows()
-    
-    return jsonify(follows)
-    # return jsonify([])
-
-
-@ app.route('/clips')
-def get_clips():
-    # r = requests.get(f'{BASE_URL}clips', params=request.args,
-    #                  headers=get_headers())
-    # # user = r.json()['data'][0]['id']
-    # return jsonify(r.json())
-
-    try:
-        client = twitch.TwitchHelix(client_id=os.getenv('CLIENT_ID'), oauth_token=session['token'])
-        cursor = client.get_clips(page_size=100,broadcaster_id=request.args['broadcaster_id'],started_at=request.args.get('started_at'),ended_at=request.args.get('ended_at'))
-    except requests.exceptions.HTTPError:
-        refresh_token()
-        return get_clips()
-
-    # follows = cursor._queue
-    # while follows.__len__() != cursor.total:
-    #     print(follows.__len__())
-    #     follows.extend(cursor.next_page())
-
-    return jsonify(cursor._queue)
