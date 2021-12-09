@@ -97,8 +97,12 @@ def set_user(username):
 @ app.route('/currentUser')
 def get_current_user():
     try:
-        client = twitch.TwitchHelix(client_id=os.getenv('CLIENT_ID'), oauth_token=session['token'])
-        user = client.get_users()
+            if(session.get('token') is not None):
+                client = twitch.TwitchHelix(client_id=os.getenv('CLIENT_ID'), oauth_token=session['token'])
+                user = client.get_users()
+            else:
+                refresh_token()
+                get_current_user()
     except requests.exceptions.HTTPError as e:
         # return e.response.content, e.response.status_code
         refresh_token()
