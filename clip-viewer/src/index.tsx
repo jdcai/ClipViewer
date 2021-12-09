@@ -3,20 +3,22 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import { createTheme, CssBaseline, ThemeProvider } from '@material-ui/core';
+import { createTheme, CssBaseline, ThemeProvider, Theme, StyledEngineProvider } from '@mui/material';
 
 const theme = createTheme({
     palette: {
-        type: 'dark',
+        mode: 'dark',
     },
 });
 
 ReactDOM.render(
     <React.StrictMode>
-        <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <App />
-        </ThemeProvider>
+        <StyledEngineProvider injectFirst>
+            <ThemeProvider theme={theme}>
+                <CssBaseline />
+                <App />
+            </ThemeProvider>
+        </StyledEngineProvider>
     </React.StrictMode>,
     document.getElementById('root'),
 );

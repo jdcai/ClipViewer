@@ -3,19 +3,22 @@ import { BrowserRouter as Router, Switch, Route, Link, useLocation } from 'react
 import './App.css';
 import 'fontsource-roboto';
 // Do https://material-ui.com/guides/minimizing-bundle-size/
-import { Button, AppBar, Toolbar, Typography, Switch as SwitchUI, ThemeProvider, createTheme } from '@material-ui/core';
+import { Button, AppBar, Toolbar, Typography } from '@mui/material';
 import styled from 'styled-components';
 import axios from 'axios';
 
 import ClipsDirectory from './components/ClipsDirectory';
 import Clip from './components/Clip';
+import Groups from './components/Groups';
+import useUserStore from './stores/UserStore';
 
 const GrowContainer = styled.div`
     flex-grow: 1;
 `;
 
 const Header = () => {
-    const [currentUser, setCurrentUser] = useState<any>(undefined);
+    const setCurrentUser = useUserStore((state) => state.setCurrentUser);
+    const currentUser: any = useUserStore((state) => state.currentUser);
     useEffect(() => {
         axios
             .get('/currentUser')
@@ -57,28 +60,7 @@ const Header = () => {
     );
 };
 
-let globalf: NodeJS.Timeout;
-const App = (props: any) => {
-    console.log('props', props);
-    // const location = useLocation();
-    // const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
-    //https://material-ui.com/customization/palette/
-    // const theme = React.useMemo(
-    //     () =>
-    //         createTheme({
-    //             palette: {
-    //                 type: prefersDarkMode ? 'dark' : 'light',
-    //             },
-    //         }),
-    //     [prefersDarkMode],
-    // );
-
-    const theme = createTheme({
-        palette: {
-            type: 'dark',
-        },
-    });
-
+const App = () => {
     return (
         <Router>
             <Header></Header>
@@ -88,6 +70,9 @@ const App = (props: any) => {
                     <ul>
                         <li>
                             <Link to="/clips">Clips</Link>
+                        </li>
+                        <li>
+                            <Link to="/groups">Groups</Link>
                         </li>
                     </ul>
                 </nav>
@@ -103,6 +88,9 @@ const App = (props: any) => {
                     </Route>
                     <Route path="/clips">
                         <ClipsDirectory></ClipsDirectory>
+                    </Route>
+                    <Route path="/groups">
+                        <Groups />
                     </Route>
                     <Route path="/">
                         <ClipsDirectory></ClipsDirectory>

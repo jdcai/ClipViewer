@@ -1,13 +1,12 @@
 import React, { useCallback, useRef, useEffect, useReducer, useState } from 'react';
 import 'fontsource-roboto';
 // Do https://material-ui.com/guides/minimizing-bundle-size/
-import { Button, TextField, Select, InputLabel, MenuItem, Switch as SwitchUI } from '@material-ui/core';
-import Autocomplete from '@material-ui/lab/Autocomplete';
+import { Switch } from '@mui/material';
 import styled from 'styled-components';
 import { useLocation } from 'react-router-dom';
-// import { Button, TextField, Select, InputLabel, MenuItem } from '@material-ui/core';/
+// import { Button, TextField, Select, InputLabel, MenuItem } from '@mui/material';/
 
-// import Autocomplete from '@material-ui/lab/Autocomplete'
+// import Autocomplete from '@mui/lab/Autocomplete'
 
 // import MomentUtils from '@date-io/moment';
 // import { DatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers'
@@ -112,7 +111,7 @@ const Clip = (props: any) => {
         <div>
             {location.state.clips.length > 0 && (
                 <div>
-                    <SwitchUI
+                    <Switch
                         checked={autoPlay}
                         onChange={(e) => setAutoPlay(e.target.checked)}
                         color="primary"
