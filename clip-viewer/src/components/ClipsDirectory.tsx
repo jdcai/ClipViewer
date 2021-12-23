@@ -14,12 +14,10 @@ import 'moment-duration-format';
 import moment, { Moment } from 'moment';
 import { useHistory, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { getUserFollows } from '../services/UserService';
+import useUserStore from '../stores/UserStore';
 
 // Try making a group of 5 streamer ids and merge clips
-
-const GrowContainer = styled.div`
-    flex-grow: 1;
-`;
 
 const ClipContainer = styled.div`
     padding: 0.5rem;
@@ -57,16 +55,17 @@ const ClipsDirectory = () => {
     const [broadcaster, setBroadcaster] = useState<any>({});
     console.log('b', location?.state?.broadcasters);
     const [broadcasters, setBroadcasters] = useState<string[]>(location?.state?.broadcasters ?? []);
-    const [follows, setFollows] = useState([]);
+    const userFollows: any = useUserStore((state) => state.userFollows);
+    const setUserFollows = useUserStore((state) => state.setUserFollows);
     const [clips, setClips] = useState<any[]>([]);
     // const [clipIndex, setClipIndex] = useState(0);
     // const [clipIndex, setClipIndex] = useReducer(clipIndexReducer, 0);
     // const [autoPlay, setAutoPlay] = useReducer(autoPlayReducer, false);
-    const [startDate, setStartDate] = useState<Moment | undefined>(moment().subtract(2, 'day'));
+    const [startDate, setStartDate] = useState<Moment | undefined>(moment().subtract(1, 'month'));
     const [endDate, setEndDate] = useState<Moment | undefined>(moment());
     const [startDateInput, setStartDateInput] = useState<Moment | undefined>(moment().subtract(1, 'month'));
     const [endDateInput, setEndDateInput] = useState<Moment | undefined>(moment());
-    const [timeInterval, setTimeInterval] = useState('Week');
+    const [timeInterval, setTimeInterval] = useState('Month');
     const history = useHistory();
 
     const getClips = (multi = false) => {
@@ -197,27 +196,11 @@ const ClipsDirectory = () => {
 
     useEffect(() => {
         console.log(moment.duration(Math.round(59.9), 'seconds').format('m:ss'));
-        axios
-            .post('/graphql', {
-                method: 'POST',
-                query: `
-            {
-                follows(userId:"")
-            }
-            `,
-            })
-            .then((result) => {
-                setFollows(JSON.parse(result.data.data.follows));
-            })
-            // Note: it's important to handle errors here
-            // instead of a catch() block so that we don't swallow
-            // exceptions from actual bugs in components.
-
-            .catch((error) => {
-                if (error.response && error.response.status === 401) {
-                    console.log(error);
-                }
+        if (!userFollows) {
+            getUserFollows().then((result) => {
+                setUserFollows(result);
             });
+        }
 
         getClips(true);
     }, []);
@@ -227,11 +210,11 @@ const ClipsDirectory = () => {
             <Autocomplete
                 freeSolo={true}
                 id="combo-box-demo"
-                options={follows ?? []}
+                options={userFollows ?? []}
                 getOptionLabel={(option: any) => option.to_name ?? ''}
                 style={{ width: 300 }}
                 onChange={(_0, value: any) => setBroadcaster(value)}
-                value={follows.length ? follows[0] : {}}
+                value={userFollows?.length ? userFollows[0] : {}}
                 renderInput={(params: unknown) => <TextField {...params} label="Following" variant="outlined" />}
             />
             <InputLabel id="label">Top</InputLabel>

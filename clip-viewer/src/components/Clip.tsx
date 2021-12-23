@@ -118,7 +118,6 @@ const Clip = (props: any) => {
                         name="checkedB"
                         inputProps={{ 'aria-label': 'primary checkbox' }}
                     />
-                    <h1>{test}</h1>
                     <h1>{clips[clipIndex].duration * 1000 + 5000}</h1>
                     <h1>{clipIndex}</h1>
                     <h1>{clips[clipIndex]?.title}</h1>
