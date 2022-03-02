@@ -9,6 +9,8 @@ import styled from 'styled-components';
 
 // import MomentUtils from '@date-io/moment';
 // import { DatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers'
+import DateAdapter from '@mui/lab/AdapterMoment';
+import { DatePicker, LocalizationProvider } from '@mui/lab';
 import 'moment-duration-format';
 
 import moment, { Moment } from 'moment';
@@ -61,10 +63,9 @@ const ClipsDirectory = () => {
     // const [clipIndex, setClipIndex] = useState(0);
     // const [clipIndex, setClipIndex] = useReducer(clipIndexReducer, 0);
     // const [autoPlay, setAutoPlay] = useReducer(autoPlayReducer, false);
-    const [startDate, setStartDate] = useState<Moment | undefined>(moment().subtract(1, 'month'));
-    const [endDate, setEndDate] = useState<Moment | undefined>(moment());
-    const [startDateInput, setStartDateInput] = useState<Moment | undefined>(moment().subtract(1, 'month'));
-    const [endDateInput, setEndDateInput] = useState<Moment | undefined>(moment());
+    const [startDate, setStartDate] = useState<Moment | null>(moment().subtract(1, 'month'));
+    const [endDate, setEndDate] = useState<Moment | null>(moment());
+
     const [timeInterval, setTimeInterval] = useState('Month');
     const history = useHistory();
 
@@ -179,13 +180,13 @@ const ClipsDirectory = () => {
 
                 break;
             case timeIntervals.All:
-                setStartDate(undefined);
-                setEndDate(undefined);
+                setStartDate(null);
+                setEndDate(null);
 
                 break;
             case timeIntervals.Custom:
-                setStartDate(startDateInput);
-                setEndDate(endDateInput);
+                setStartDate(null);
+                setEndDate(null);
 
                 break;
 
@@ -227,6 +228,26 @@ const ClipsDirectory = () => {
                     );
                 })}
             </Select>
+            {timeInterval === 'Custom' && (
+                <LocalizationProvider dateAdapter={DateAdapter}>
+                    <DatePicker
+                        label="Start date"
+                        value={startDate}
+                        onChange={(newValue) => {
+                            setStartDate(newValue);
+                        }}
+                        renderInput={(params) => <TextField {...params} />}
+                    />
+                    <DatePicker
+                        label="End date"
+                        value={endDate}
+                        onChange={(newValue) => {
+                            setEndDate(newValue);
+                        }}
+                        renderInput={(params) => <TextField {...params} />}
+                    />
+                </LocalizationProvider>
+            )}
             <Button variant="contained" color="primary" onClick={() => getClips()}>
                 Get Clips
             </Button>
