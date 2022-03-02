@@ -22,13 +22,19 @@ import useUserStore from '../stores/UserStore';
 // Try making a group of 5 streamer ids and merge clips
 
 const ClipContainer = styled.div`
-    padding: 0.5rem;
+    margin: 0.5rem;
     display: inline-block;
+    width: 30rem;
 `;
 
 const ClipImageContainer = styled.div`
     position: relative;
     cursor: pointer;
+`;
+const ClipTitle = styled.div`
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 `;
 
 const ClipInfo = styled.div`
@@ -267,7 +273,7 @@ const ClipsDirectory = () => {
                                 <ViewCount>{clip?.view_count} views</ViewCount>
                                 <CreatedDate>{moment(clip?.created_at).fromNow()}</CreatedDate>
                             </ClipImageContainer>
-                            <div>{clip?.title}</div>
+                            <ClipTitle title={clip?.title}>{clip?.title}</ClipTitle>
                             <div>{clip?.broadcaster_name}</div>
                         </ClipContainer>
                     ))}
