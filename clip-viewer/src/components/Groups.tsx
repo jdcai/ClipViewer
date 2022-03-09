@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import 'fontsource-roboto';
-// Do https://material-ui.com/guides/minimizing-bundle-size/
+
 import { Button, TextField, Autocomplete } from '@mui/material';
 import styled from 'styled-components';
 import { useHistory, useLocation } from 'react-router-dom';

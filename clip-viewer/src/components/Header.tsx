@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-// Do https://material-ui.com/guides/minimizing-bundle-size/
+
 import { AppBar, Toolbar, Typography, Button, IconButton } from '@mui/material';
 import axios from 'axios';
 import styled from 'styled-components';

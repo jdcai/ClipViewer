@@ -1,14 +1,9 @@
-import React, { useEffect, useReducer, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import 'fontsource-roboto';
-// Do https://material-ui.com/guides/minimizing-bundle-size/
-import { Button, TextField, Select, InputLabel, MenuItem, Autocomplete } from '@mui/material/';
+
+import { Button, TextField, Select, InputLabel, MenuItem, Autocomplete, Modal } from '@mui/material/';
 import styled from 'styled-components';
-// import { Button, TextField, Select, InputLabel, MenuItem } from '@mui/material';/
 
-// import Autocomplete from '@mui/lab/Autocomplete'
-
-// import MomentUtils from '@date-io/moment';
-// import { DatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers'
 import DateAdapter from '@mui/lab/AdapterMoment';
 import { DatePicker, LocalizationProvider } from '@mui/lab';
 import 'moment-duration-format';
@@ -18,8 +13,7 @@ import { useHistory, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { getUserFollows } from '../services/UserService';
 import useUserStore from '../stores/UserStore';
-
-// Try making a group of 5 streamer ids and merge clips
+import Clip from './Clip';
 
 const ClipContainer = styled.div`
     margin: 0.5rem;
@@ -32,9 +26,18 @@ const ClipImageContainer = styled.div`
     cursor: pointer;
 `;
 const ClipTitle = styled.div`
+    display: flex;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+    min-height: 24px;
+`;
+const ClipBroadcaster = styled.div`
+    display: flex;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    min-height: 24px;
 `;
 
 const ClipInfo = styled.div`
@@ -57,18 +60,37 @@ const CreatedDate = styled(ClipInfo)`
     right: 0;
 `;
 
+const ModalContainer = styled.div`
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #121212;
+    border: 2px solid #000;
+    width: 90%;
+    max-width: 90%;
+    transform: translate(-50%, -50%);
+    height: 80%;
+    max-height: 80%;
+    outline: 0;
+`;
+
+let globalf: NodeJS.Timeout;
+
 const ClipsDirectory = () => {
     const location = useLocation<any>();
     const timeIntervalsArr = ['Day', 'Week', 'Month', 'Year', 'All Time', 'Custom'];
     const [broadcaster, setBroadcaster] = useState<any>({});
-    console.log('b', location?.state?.broadcasters);
+
     const [broadcasters, setBroadcasters] = useState<string[]>(location?.state?.broadcasters ?? []);
     const userFollows: any = useUserStore((state) => state.userFollows);
     const setUserFollows = useUserStore((state) => state.setUserFollows);
     const [clips, setClips] = useState<any[]>([]);
-    // const [clipIndex, setClipIndex] = useState(0);
-    // const [clipIndex, setClipIndex] = useReducer(clipIndexReducer, 0);
-    // const [autoPlay, setAutoPlay] = useReducer(autoPlayReducer, false);
+    const [clipIndex, setClipIndex] = useState(0);
+    const [autoPlay, setAutoPlay] = useState(false);
+    const [openModal, setOpenModal] = useState(false);
     const [startDate, setStartDate] = useState<Moment | null>(moment().subtract(1, 'month'));
     const [endDate, setEndDate] = useState<Moment | null>(moment());
 
@@ -82,33 +104,7 @@ const ClipsDirectory = () => {
         };
 
         if (multi) {
-            // Nyanners 82350088
-            // BoxBox 38881685
-            // Lily 31106024
-            // Ironmouse 175831187
-            // Haruka 483194031
-            // Silvervale 515567425
-            // Snuffy 56938961
-            // Projektmelody 478575546
-            // Zentreya 128440061
-            // Sykkuno 26154978
-            // Veibae 97245742
-            // Apricot 151054406
-            // params.broadcaster_id = ['82350088', '31106024', '38881685'];
             params.broadcaster_id = broadcasters;
-            // [
-            //     '82350088',
-            //     '83402203',
-            //     // '175831187',
-            //     // '483194031',
-            //     // '515567425',
-            //     // '56938961',
-            //     // '478575546',
-            //     // '128440061',
-            //     // '26154978',
-            //     // '97245742',
-            //     // '151054406',
-            // ];
         }
         params.broadcaster_id = params.broadcaster_id.map((id: any) => `"${id}"`).join(',');
 
@@ -116,11 +112,6 @@ const ClipsDirectory = () => {
             params.started_at = startDate.toISOString();
             params.ended_at = endDate.toISOString();
         }
-
-        const esc = encodeURIComponent;
-        // const query = Object.entries(params)
-        //     .map(([k, v]) => esc(k) + '=' + esc(v))
-        //     .join('&');
 
         fetch('/graphql', {
             method: 'POST',
@@ -136,13 +127,7 @@ const ClipsDirectory = () => {
             .then((res) => res.json())
             .then(
                 (result) => {
-                    console.log(JSON.parse(result.data.clips));
                     setClips(JSON.parse(result.data.clips));
-                    // console.log(result);
-                    // setClips(result);
-                    // setClipIndex('reset');
-                    // console.log(clipIndex);
-                    console.log(clips);
                 },
                 // Note: it's important to handle errors here
                 // instead of a catch() block so that we don't swallow
@@ -166,7 +151,7 @@ const ClipsDirectory = () => {
 
         switch (e.target.value) {
             case timeIntervals.Day:
-                setStartDate(moment().subtract(2, 'day'));
+                setStartDate(moment().subtract(1, 'day'));
                 setEndDate(moment());
 
                 break;
@@ -202,7 +187,6 @@ const ClipsDirectory = () => {
     };
 
     useEffect(() => {
-        console.log(moment.duration(Math.round(59.9), 'seconds').format('m:ss'));
         if (!userFollows) {
             getUserFollows().then((result) => {
                 setUserFollows(result);
@@ -211,6 +195,40 @@ const ClipsDirectory = () => {
 
         getClips(true);
     }, []);
+
+    const handleKey = (e: KeyboardEvent) => {
+        if (e.code === 'ArrowRight') {
+            if (clipIndex < clips.length - 1) {
+                setClipIndex((clipIndex) => clipIndex + 1);
+            }
+        } else if (e.code === 'ArrowLeft') {
+            if (clipIndex > 0) {
+                setClipIndex((clipIndex) => clipIndex - 1);
+            }
+        }
+    };
+
+    const handleModalClose = () => {
+        setOpenModal(false);
+    };
+
+    useEffect(() => {
+        document.addEventListener('keydown', handleKey);
+        return () => document.removeEventListener('keydown', handleKey);
+    }, [clips, clipIndex, handleKey]);
+
+    useEffect(() => {
+        if (autoPlay) {
+            clearInterval(globalf);
+
+            globalf = setInterval(() => {
+                setClipIndex((clipIndex) => clipIndex + 1);
+            }, clips[clipIndex].duration * 1000 + 5000);
+        } else {
+            clearInterval(globalf);
+        }
+        return () => clearInterval(globalf);
+    }, [clipIndex, autoPlay]);
 
     return (
         <div>
@@ -248,7 +266,8 @@ const ClipsDirectory = () => {
                         label="End date"
                         value={endDate}
                         onChange={(newValue) => {
-                            setEndDate(newValue);
+                            const endOfDay = newValue?.endOf('day');
+                            setEndDate(endOfDay ?? null);
                         }}
                         renderInput={(params) => <TextField {...params} />}
                     />
@@ -262,7 +281,11 @@ const ClipsDirectory = () => {
                     clips.map((clip, index) => (
                         <ClipContainer key={clip.id}>
                             <ClipImageContainer
-                                onClick={() => history.push('clip', { clips: clips, currentClip: clip, index: index })}
+                                onClick={() => {
+                                    setClipIndex(index);
+                                    setOpenModal(true);
+                                }}
+                                // onClick={() => history.push('clip', { clips: clips, currentClip: clip, index: index })}
                             >
                                 <img src={clip?.thumbnail_url}></img>
                                 <Duration>
@@ -274,10 +297,15 @@ const ClipsDirectory = () => {
                                 <CreatedDate>{moment(clip?.created_at).fromNow()}</CreatedDate>
                             </ClipImageContainer>
                             <ClipTitle title={clip?.title}>{clip?.title}</ClipTitle>
-                            <div>{clip?.broadcaster_name}</div>
+                            <ClipBroadcaster>{clip?.broadcaster_name}</ClipBroadcaster>
                         </ClipContainer>
                     ))}
             </div>
+            <Modal open={openModal} onClose={handleModalClose}>
+                <ModalContainer>
+                    <Clip clip={clips[clipIndex]} autoPlay={autoPlay} setAutoPlay={setAutoPlay} />
+                </ModalContainer>
+            </Modal>
         </div>
     );
 };

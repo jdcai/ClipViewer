@@ -12,7 +12,6 @@ export const getUserFollows = () => {
     `,
             })
             .then((result) => {
-                console.log('result', JSON.parse(result.data.data.follows));
                 return JSON.parse(result.data.data.follows);
             })
             // Note: it's important to handle errors here

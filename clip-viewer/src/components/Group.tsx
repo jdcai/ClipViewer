@@ -1,6 +1,6 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import 'fontsource-roboto';
-// Do https://material-ui.com/guides/minimizing-bundle-size/
+
 import { TextField, Autocomplete } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
@@ -83,7 +83,7 @@ const Group = (props: {
     const [selectedUser, setSelectedUser] = useState<any>();
     const [isEditingGroup, setIsEditingGroup] = useState(isNew);
     const [isAddingUser, setIsAddingUser] = useState(false);
-    const [groupName, setGroupName] = useState(props.group.name);
+    const [groupName, setGroupName] = useState(group.name);
     const history = useHistory();
 
     // const location = useLocation<any>();
@@ -103,11 +103,11 @@ const Group = (props: {
                 return user.id === selectedUser.to_id;
             })
         ) {
-            props.setGroups({
-                ...props.groups,
+            setGroups({
+                ...groups,
                 [id]: {
-                    ...props.groups[id],
-                    users: [...props.groups[id].users, { name: selectedUser?.to_name, id: selectedUser?.to_id }],
+                    ...groups[id],
+                    users: [...groups[id].users, { name: selectedUser?.to_name, id: selectedUser?.to_id }],
                 },
             });
         }
@@ -115,13 +115,13 @@ const Group = (props: {
     };
 
     const saveGroupName = (name: string) => {
-        props.setGroups({ ...props.groups, [id]: { ...group, name: name } });
+        setGroups({ ...groups, [id]: { ...group, name: name } });
     };
 
     const deleteGroup = () => {
         setIsEditingGroup(false);
-        const { [id]: removedGroup, ...groups } = props.groups;
-        props.setGroups(groups);
+        const { [id]: removedGroup, ...restOfTheGroups } = groups;
+        setGroups(restOfTheGroups);
     };
 
     return (
@@ -159,7 +159,6 @@ const Group = (props: {
                             variant="outlined"
                         ></TextField>
                         <EditIcon fontSize="small" onClick={() => setIsEditingGroup(false)} />
-                        {/* <SaveIcon onClick={() => saveGroup()} /> */}
                         <DeleteIcon onClick={() => deleteGroup()} />
                     </EditGroupNameContainer>
                 )}
