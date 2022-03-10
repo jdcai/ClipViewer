@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { AppBar, Toolbar, Typography, Button, IconButton } from '@mui/material';
+import { AppBar, Toolbar, Typography, Button, IconButton, Autocomplete, TextField } from '@mui/material';
 import axios from 'axios';
 import styled from 'styled-components';
 import useUserStore from '../stores/UserStore';
@@ -9,6 +9,8 @@ import Groups from './Groups';
 import { withTheme } from '@mui/styles';
 import { drawerWidth } from '../Constants';
 import MenuIcon from '@mui/icons-material/Menu';
+import { getUserFollows } from '../services/UserService';
+import { useHistory } from 'react-router';
 
 const GrowContainer = styled.div`
     flex-grow: 1;
@@ -31,13 +33,23 @@ const IconButtonContainer = styled(withTheme(IconButton))`
 const Header = () => {
     const setCurrentUser = useUserStore((state) => state.setCurrentUser);
     const currentUser: any = useUserStore((state) => state.currentUser);
+    const userFollows: any = useUserStore((state) => state.userFollows);
+    const setUserFollows = useUserStore((state) => state.setUserFollows);
     const [showDrawer, setShowDrawer] = useState(false);
+    const [broadcaster, setBroadcaster] = useState<any>({});
+    const history = useHistory();
 
     useEffect(() => {
         axios
             .get('/currentUser')
             .then((result) => {
                 setCurrentUser(result.data);
+                if (!userFollows) {
+                    getUserFollows().then((follows) => {
+                        setUserFollows(follows);
+                    });
+                }
+
                 //Add a login here if current user is not existant?
                 console.log('success', result);
             })
@@ -71,6 +83,25 @@ const Header = () => {
                     </IconButtonContainer>
                     <Typography variant="h6">Clips</Typography>
                     <GrowContainer></GrowContainer>
+                    <Autocomplete
+                        freeSolo={true}
+                        id="combo-box-demo"
+                        options={userFollows ?? []}
+                        getOptionLabel={(option: any) => option.to_name ?? ''}
+                        style={{ width: 300 }}
+                        onChange={(_0, value: any) => setBroadcaster(value)}
+                        value={userFollows?.length ? userFollows[0] : {}}
+                        renderInput={(params: unknown) => (
+                            <TextField {...params} label="Following" variant="outlined" />
+                        )}
+                    />
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => history.push('clips', { broadcasters: [broadcaster.to_id] })}
+                    >
+                        Get Clips
+                    </Button>
                     {currentUser ? (
                         <Typography variant="h6">{currentUser?.display_name}</Typography>
                     ) : (

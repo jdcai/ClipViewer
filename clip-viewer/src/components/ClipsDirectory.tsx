@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import 'fontsource-roboto';
 
-import { Button, TextField, Select, InputLabel, MenuItem, Autocomplete, Modal } from '@mui/material/';
+import { Button, TextField, Select, InputLabel, MenuItem, Modal } from '@mui/material/';
 import styled from 'styled-components';
 
 import DateAdapter from '@mui/lab/AdapterMoment';
@@ -11,8 +11,7 @@ import 'moment-duration-format';
 import moment, { Moment } from 'moment';
 import { useHistory, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { getUserFollows } from '../services/UserService';
-import useUserStore from '../stores/UserStore';
+
 import Clip from './Clip';
 
 const ClipContainer = styled.div`
@@ -85,8 +84,7 @@ const ClipsDirectory = () => {
     const [broadcaster, setBroadcaster] = useState<any>({});
 
     const [broadcasters, setBroadcasters] = useState<string[]>(location?.state?.broadcasters ?? []);
-    const userFollows: any = useUserStore((state) => state.userFollows);
-    const setUserFollows = useUserStore((state) => state.setUserFollows);
+
     const [clips, setClips] = useState<any[]>([]);
     const [clipIndex, setClipIndex] = useState(0);
     const [autoPlay, setAutoPlay] = useState(false);
@@ -187,12 +185,6 @@ const ClipsDirectory = () => {
     };
 
     useEffect(() => {
-        if (!userFollows) {
-            getUserFollows().then((result) => {
-                setUserFollows(result);
-            });
-        }
-
         getClips(true);
     }, []);
 
@@ -232,16 +224,6 @@ const ClipsDirectory = () => {
 
     return (
         <div>
-            <Autocomplete
-                freeSolo={true}
-                id="combo-box-demo"
-                options={userFollows ?? []}
-                getOptionLabel={(option: any) => option.to_name ?? ''}
-                style={{ width: 300 }}
-                onChange={(_0, value: any) => setBroadcaster(value)}
-                value={userFollows?.length ? userFollows[0] : {}}
-                renderInput={(params: unknown) => <TextField {...params} label="Following" variant="outlined" />}
-            />
             <InputLabel id="label">Top</InputLabel>
             <Select labelId="label" id="select" onChange={(e) => handleintervalChange(e)} defaultValue={timeInterval}>
                 {timeIntervalsArr.map((v) => {
@@ -273,9 +255,7 @@ const ClipsDirectory = () => {
                     />
                 </LocalizationProvider>
             )}
-            <Button variant="contained" color="primary" onClick={() => getClips()}>
-                Get Clips
-            </Button>
+
             <div>
                 {clips &&
                     clips.map((clip, index) => (
