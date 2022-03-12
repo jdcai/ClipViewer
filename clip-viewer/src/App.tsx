@@ -2,12 +2,10 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Switch, Route, Link, useLocation } from 'react-router-dom';
 import './App.css';
 import 'fontsource-roboto';
-// Do https://mui.com/guides/minimizing-bundle-size/
 import Toolbar from '@mui/material/Toolbar';
 import styled from 'styled-components';
 
 import ClipsDirectory from './components/ClipsDirectory';
-import Clip from './components/Clip';
 import Groups from './components/Groups';
 import Header from './components/Header';
 
@@ -33,9 +31,6 @@ const App = () => {
                 {/* A <Switch> looks through its children <Route>s and
             renders the first one that matches the current URL. */}
                 <Switch>
-                    <Route path="/clip">
-                        <Clip></Clip>
-                    </Route>
                     <Route path="/oauth/callback">
                         <Authorize />
                     </Route>

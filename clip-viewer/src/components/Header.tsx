@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-
-import { AppBar, Toolbar, Typography, Button, IconButton, Autocomplete, TextField } from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import { AppBar, Toolbar, Typography, Button, IconButton, Autocomplete, InputBase } from '@mui/material';
 import axios from 'axios';
 import styled from 'styled-components';
 import useUserStore from '../stores/UserStore';
@@ -11,9 +11,63 @@ import { drawerWidth } from '../Constants';
 import MenuIcon from '@mui/icons-material/Menu';
 import { getUserFollows } from '../services/UserService';
 import { useHistory } from 'react-router';
+import SearchIcon from '@mui/icons-material/Search';
 
-const GrowContainer = styled.div`
-    flex-grow: 1;
+const ToolbarContainer = styled(Toolbar)`
+    align-items: center;
+    justify-content: space-between;
+`;
+
+const HeaderSection = styled.div`
+    display: flex;
+    align-items: center;
+`;
+
+const Start = styled(HeaderSection)``;
+const Center = styled(HeaderSection)``;
+const End = styled(HeaderSection)``;
+
+const Search = styled('div')(({ theme }) => ({
+    position: 'relative',
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: alpha(theme.palette.common.white, 0.15),
+    '&:hover': {
+        backgroundColor: alpha(theme.palette.common.white, 0.25),
+    },
+    marginRight: theme.spacing(2),
+    marginLeft: 0,
+    width: '100%',
+    [theme.breakpoints.up('sm')]: {
+        marginLeft: theme.spacing(3),
+        width: 'auto',
+    },
+}));
+
+const SearchIconWrapper = styled('div')(({ theme }) => ({
+    padding: theme.spacing(0, 2),
+    height: '100%',
+    position: 'absolute',
+    pointerEvents: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+}));
+
+const StyledInputBase = styled(InputBase)(({ theme }) => ({
+    width: '100%',
+
+    color: 'inherit',
+    '& .MuiInputBase-input': {
+        padding: theme.spacing(1, 1, 1, 0),
+        // vertical padding + font size from searchIcon
+        paddingLeft: `calc(1em + ${theme.spacing(4)})`,
+        transition: theme.transitions.create('width'),
+        width: '100%',
+    },
+}));
+
+const AutocompleteContainer = styled.div`
+    display: flex;
 `;
 
 const AppBarContainer = styled(withTheme(AppBar))`
@@ -72,44 +126,57 @@ const Header = () => {
     return (
         <>
             <AppBarContainer position="fixed">
-                <Toolbar>
-                    <IconButtonContainer
-                        color="inherit"
-                        aria-label="open drawer"
-                        onClick={() => setShowDrawer(!showDrawer)}
-                        edge="start"
-                    >
-                        <MenuIcon />
-                    </IconButtonContainer>
-                    <Typography variant="h6">Clips</Typography>
-                    <GrowContainer></GrowContainer>
-                    <Autocomplete
-                        freeSolo={true}
-                        id="combo-box-demo"
-                        options={userFollows ?? []}
-                        getOptionLabel={(option: any) => option.to_name ?? ''}
-                        style={{ width: 300 }}
-                        onChange={(_0, value: any) => setBroadcaster(value)}
-                        value={userFollows?.length ? userFollows[0] : {}}
-                        renderInput={(params: unknown) => (
-                            <TextField {...params} label="Following" variant="outlined" />
+                <ToolbarContainer>
+                    <Start>
+                        <IconButtonContainer
+                            color="inherit"
+                            aria-label="open drawer"
+                            onClick={() => setShowDrawer(!showDrawer)}
+                            edge="start"
+                        >
+                            <MenuIcon />
+                        </IconButtonContainer>
+
+                        <Typography variant="h6">Clips</Typography>
+                    </Start>
+                    <Center>
+                        <AutocompleteContainer>
+                            <Autocomplete
+                                freeSolo={true}
+                                id="combo-box-demo"
+                                options={userFollows ?? []}
+                                getOptionLabel={(option: any) => option.to_name ?? ''}
+                                style={{ width: 355 }}
+                                onChange={(_0, value: any) => setBroadcaster(value)}
+                                value={userFollows?.length ? userFollows[0] : {}}
+                                renderInput={(params: any) => (
+                                    <Search ref={params.InputProps.ref}>
+                                        <SearchIconWrapper>
+                                            <SearchIcon />
+                                        </SearchIconWrapper>
+                                        <StyledInputBase inputProps={params.inputProps} placeholder="Search…" />
+                                    </Search>
+                                )}
+                            />
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={() => history.push('clips', { broadcasters: [broadcaster.to_id] })}
+                            >
+                                Get Clips
+                            </Button>
+                        </AutocompleteContainer>
+                    </Center>
+                    <End>
+                        {currentUser ? (
+                            <Typography variant="h6">{currentUser?.display_name}</Typography>
+                        ) : (
+                            <Button color="inherit" onClick={() => login()}>
+                                Login
+                            </Button>
                         )}
-                    />
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => history.push('clips', { broadcasters: [broadcaster.to_id] })}
-                    >
-                        Get Clips
-                    </Button>
-                    {currentUser ? (
-                        <Typography variant="h6">{currentUser?.display_name}</Typography>
-                    ) : (
-                        <Button color="inherit" onClick={() => login()}>
-                            Login
-                        </Button>
-                    )}
-                </Toolbar>
+                    </End>
+                </ToolbarContainer>
             </AppBarContainer>
             <DrawerContainer variant="persistent" hideBackdrop={true} anchor={'left'} open={showDrawer}>
                 <Toolbar />
