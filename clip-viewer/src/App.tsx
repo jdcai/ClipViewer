@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Switch, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import './App.css';
 import 'fontsource-roboto';
 import Toolbar from '@mui/material/Toolbar';
@@ -17,33 +17,12 @@ const App = () => {
             <Header></Header>
             <Toolbar />
             <Container>
-                <nav>
-                    <ul>
-                        <li>
-                            <Link to="/clips">Clips</Link>
-                        </li>
-                        <li>
-                            <Link to="/groups">Groups</Link>
-                        </li>
-                    </ul>
-                </nav>
-
-                {/* A <Switch> looks through its children <Route>s and
-            renders the first one that matches the current URL. */}
-                <Switch>
-                    <Route path="/oauth/callback">
-                        <Authorize />
-                    </Route>
-                    <Route path="/clips">
-                        <ClipsDirectory></ClipsDirectory>
-                    </Route>
-                    <Route path="/groups">
-                        <Groups />
-                    </Route>
-                    <Route path="/">
-                        <ClipsDirectory></ClipsDirectory>
-                    </Route>
-                </Switch>
+                <Routes>
+                    <Route path="/oauth/callback" element={<Authorize />} />
+                    <Route path="/clips" element={<ClipsDirectory />} />
+                    <Route path="/groups" element={<Groups />} />
+                    <Route path="/" element={<ClipsDirectory />} />
+                </Routes>
             </Container>
         </Router>
     );

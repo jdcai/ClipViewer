@@ -9,7 +9,7 @@ import { DatePicker, LocalizationProvider } from '@mui/lab';
 import 'moment-duration-format';
 
 import moment, { Moment } from 'moment';
-import { useHistory, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Location } from 'react-router-dom';
 import axios from 'axios';
 
 import Clip from './Clip';
@@ -76,14 +76,17 @@ const ModalContainer = styled.div`
     outline: 0;
 `;
 
+interface LocationState {
+    broadcasters: string[];
+}
+
 let globalf: NodeJS.Timeout;
 
 const ClipsDirectory = () => {
-    const location = useLocation<any>();
+    const location = useLocation();
+    const locationState = location.state as LocationState;
     const timeIntervalsArr = ['Day', 'Week', 'Month', 'Year', 'All Time', 'Custom'];
-    const [broadcaster, setBroadcaster] = useState<any>({});
-
-    const [broadcasters, setBroadcasters] = useState<string[]>(location?.state?.broadcasters ?? []);
+    const [broadcasters, setBroadcasters] = useState<string[]>([]);
 
     const [clips, setClips] = useState<any[]>([]);
     const [clipIndex, setClipIndex] = useState(0);
@@ -93,47 +96,44 @@ const ClipsDirectory = () => {
     const [endDate, setEndDate] = useState<Moment | null>(moment());
 
     const [timeInterval, setTimeInterval] = useState('Month');
-    const history = useHistory();
+    const navigate = useNavigate();
 
-    const getClips = (multi = false) => {
-        const params: { [k: string]: any } = {
-            broadcaster_id: [broadcaster.to_id],
-            first: 100,
-        };
+    const getClips = () => {
+        if (broadcasters.length > 0) {
+            const params: { [k: string]: any } = {
+                broadcaster_id: broadcasters.map((id: string) => `"${id}"`).join(','),
+                first: 100,
+            };
 
-        if (multi) {
-            params.broadcaster_id = broadcasters;
-        }
-        params.broadcaster_id = params.broadcaster_id.map((id: any) => `"${id}"`).join(',');
+            if (startDate && endDate) {
+                params.started_at = startDate.toISOString();
+                params.ended_at = endDate.toISOString();
+            }
 
-        if (startDate && endDate) {
-            params.started_at = startDate.toISOString();
-            params.ended_at = endDate.toISOString();
-        }
-
-        fetch('/graphql', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                query: `
+            fetch('/graphql', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    query: `
             {
                 clips(broadcasterIds: [${params.broadcaster_id}], startedAt: "${params.started_at}", endedAt: "${params.ended_at}")
             }
             `,
-            }),
-        })
-            .then((res) => res.json())
-            .then(
-                (result) => {
-                    setClips(JSON.parse(result.data.clips));
-                },
-                // Note: it's important to handle errors here
-                // instead of a catch() block so that we don't swallow
-                // exceptions from actual bugs in components.
-                (error) => {
-                    console.log(error);
-                },
-            );
+                }),
+            })
+                .then((res) => res.json())
+                .then(
+                    (result) => {
+                        setClips(JSON.parse(result.data.clips));
+                    },
+                    // Note: it's important to handle errors here
+                    // instead of a catch() block so that we don't swallow
+                    // exceptions from actual bugs in components.
+                    (error) => {
+                        console.log(error);
+                    },
+                );
+        }
     };
 
     const handleintervalChange = (e: any) => {
@@ -185,8 +185,12 @@ const ClipsDirectory = () => {
     };
 
     useEffect(() => {
-        getClips(true);
-    }, []);
+        getClips();
+    }, [broadcasters]);
+
+    useEffect(() => {
+        setBroadcasters(locationState?.broadcasters ?? []);
+    }, [locationState.broadcasters]);
 
     const handleKey = (e: KeyboardEvent) => {
         if (e.code === 'ArrowRight') {
@@ -265,7 +269,7 @@ const ClipsDirectory = () => {
                                     setClipIndex(index);
                                     setOpenModal(true);
                                 }}
-                                // onClick={() => history.push('clip', { clips: clips, currentClip: clip, index: index })}
+                                // onClick={() => navigate.push('clip', { clips: clips, currentClip: clip, index: index })}
                             >
                                 <img src={clip?.thumbnail_url}></img>
                                 <Duration>

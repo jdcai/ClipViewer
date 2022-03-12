@@ -7,7 +7,7 @@ import AddIcon from '@mui/icons-material/Add';
 import ClearIcon from '@mui/icons-material/Clear';
 import DeleteIcon from '@mui/icons-material/Delete';
 import styled from 'styled-components';
-import { useHistory, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import useUserStore from '../stores/UserStore';
 import { getUserFollows } from '../services/UserService';
 
@@ -84,7 +84,7 @@ const Group = (props: {
     const [isEditingGroup, setIsEditingGroup] = useState(isNew);
     const [isAddingUser, setIsAddingUser] = useState(false);
     const [groupName, setGroupName] = useState(group.name);
-    const history = useHistory();
+    const navigate = useNavigate();
 
     // const location = useLocation<any>();
 
@@ -131,10 +131,13 @@ const Group = (props: {
                     <GroupNameContainer>
                         <GroupName
                             onClick={() =>
-                                history.push('clips', {
-                                    broadcasters: group.users.map((user) => {
-                                        return user.id;
-                                    }),
+                                navigate('clips', {
+                                    replace: true,
+                                    state: {
+                                        broadcasters: group.users.map((user) => {
+                                            return user.id;
+                                        }),
+                                    },
                                 })
                             }
                         >

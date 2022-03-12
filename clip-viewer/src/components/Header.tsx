@@ -10,7 +10,7 @@ import { withTheme } from '@mui/styles';
 import { drawerWidth } from '../Constants';
 import MenuIcon from '@mui/icons-material/Menu';
 import { getUserFollows } from '../services/UserService';
-import { useHistory } from 'react-router';
+import { useNavigate } from 'react-router';
 import SearchIcon from '@mui/icons-material/Search';
 
 const ToolbarContainer = styled(Toolbar)`
@@ -91,7 +91,7 @@ const Header = () => {
     const setUserFollows = useUserStore((state) => state.setUserFollows);
     const [showDrawer, setShowDrawer] = useState(false);
     const [broadcaster, setBroadcaster] = useState<any>({});
-    const history = useHistory();
+    const navigate = useNavigate();
 
     useEffect(() => {
         axios
@@ -148,7 +148,6 @@ const Header = () => {
                                 getOptionLabel={(option: any) => option.to_name ?? ''}
                                 style={{ width: 355 }}
                                 onChange={(_0, value: any) => setBroadcaster(value)}
-                                value={userFollows?.length ? userFollows[0] : {}}
                                 renderInput={(params: any) => (
                                     <Search ref={params.InputProps.ref}>
                                         <SearchIconWrapper>
@@ -161,7 +160,9 @@ const Header = () => {
                             <Button
                                 variant="contained"
                                 color="primary"
-                                onClick={() => history.push('clips', { broadcasters: [broadcaster.to_id] })}
+                                onClick={() =>
+                                    navigate('clips', { replace: true, state: { broadcasters: [broadcaster.to_id] } })
+                                }
                             >
                                 Get Clips
                             </Button>

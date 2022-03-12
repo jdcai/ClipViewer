@@ -3,7 +3,7 @@ import 'fontsource-roboto';
 
 import { Button, TextField, Autocomplete } from '@mui/material';
 import styled from 'styled-components';
-import { useHistory, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import useUserStore from '../stores/UserStore';
 import axios from 'axios';
 import Group from './Group';
@@ -32,12 +32,12 @@ interface EditingStates {
 }
 
 const Groups = () => {
-    const location = useLocation<any>();
+    const location = useLocation();
     const currentUser: any = useUserStore((state) => state.currentUser);
     const [isNew, setIsEditing] = useState<EditingStates>({});
     const [follows, setFollows] = useState([]);
     const [groups, setGroups] = useState<GroupContainer>({});
-    const history = useHistory();
+    const navigate = useNavigate();
     const isInitialMount = useRef(true);
 
     useEffect(() => {
