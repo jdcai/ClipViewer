@@ -1,13 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import 'fontsource-roboto';
-
 import { Button, TextField, Select, InputLabel, MenuItem, Modal } from '@mui/material/';
 import styled from 'styled-components';
-
 import DateAdapter from '@mui/lab/AdapterMoment';
 import { DatePicker, LocalizationProvider } from '@mui/lab';
 import 'moment-duration-format';
-
 import moment, { Moment } from 'moment';
 import { useNavigate, useLocation, Location } from 'react-router-dom';
 import axios from 'axios';
@@ -30,6 +26,11 @@ const ClipTitle = styled.div`
     white-space: nowrap;
     overflow: hidden;
     min-height: 24px;
+`;
+const Title = styled.h1`
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 `;
 const ClipBroadcaster = styled.div`
     display: flex;
@@ -107,7 +108,7 @@ const ClipsDirectory = () => {
     const navigate = useNavigate();
 
     const getClips = () => {
-        if (broadcasters.length > 0) {
+        if (broadcasters.length) {
             const params: { [k: string]: any } = {
                 broadcaster_id: broadcasters.map((id: string) => `"${id}"`).join(','),
                 first: 100,
@@ -236,50 +237,52 @@ const ClipsDirectory = () => {
     }, [clipIndex, autoPlay]);
 
     return (
-        <>
+        <div>
+            <TopContainer>
+                <Title title={title}>{title}</Title>
+                {broadcasters.length > 0 && (
+                    <Controls>
+                        <InputLabel id="label">Top</InputLabel>
+                        <Select
+                            labelId="label"
+                            id="select"
+                            onChange={(e) => handleintervalChange(e)}
+                            defaultValue={timeInterval}
+                        >
+                            {timeIntervalsArr.map((v) => {
+                                return (
+                                    <MenuItem key={v} value={v}>
+                                        {v}
+                                    </MenuItem>
+                                );
+                            })}
+                        </Select>
+                        {timeInterval === 'Custom' && (
+                            <LocalizationProvider dateAdapter={DateAdapter}>
+                                <DatePicker
+                                    label="Start date"
+                                    value={startDate}
+                                    onChange={(newValue) => {
+                                        setStartDate(newValue);
+                                    }}
+                                    renderInput={(params) => <TextField {...params} />}
+                                />
+                                <DatePicker
+                                    label="End date"
+                                    value={endDate}
+                                    onChange={(newValue) => {
+                                        const endOfDay = newValue?.endOf('day');
+                                        setEndDate(endOfDay ?? null);
+                                    }}
+                                    renderInput={(params) => <TextField {...params} />}
+                                />
+                            </LocalizationProvider>
+                        )}
+                    </Controls>
+                )}
+            </TopContainer>
             {broadcasters.length > 0 && (
-                <div>
-                    <TopContainer>
-                        <h1>{title}</h1>
-                        <Controls>
-                            <InputLabel id="label">Top</InputLabel>
-                            <Select
-                                labelId="label"
-                                id="select"
-                                onChange={(e) => handleintervalChange(e)}
-                                defaultValue={timeInterval}
-                            >
-                                {timeIntervalsArr.map((v) => {
-                                    return (
-                                        <MenuItem key={v} value={v}>
-                                            {v}
-                                        </MenuItem>
-                                    );
-                                })}
-                            </Select>
-                            {timeInterval === 'Custom' && (
-                                <LocalizationProvider dateAdapter={DateAdapter}>
-                                    <DatePicker
-                                        label="Start date"
-                                        value={startDate}
-                                        onChange={(newValue) => {
-                                            setStartDate(newValue);
-                                        }}
-                                        renderInput={(params) => <TextField {...params} />}
-                                    />
-                                    <DatePicker
-                                        label="End date"
-                                        value={endDate}
-                                        onChange={(newValue) => {
-                                            const endOfDay = newValue?.endOf('day');
-                                            setEndDate(endOfDay ?? null);
-                                        }}
-                                        renderInput={(params) => <TextField {...params} />}
-                                    />
-                                </LocalizationProvider>
-                            )}
-                        </Controls>
-                    </TopContainer>
+                <>
                     <div>
                         {clips &&
                             clips.map((clip, index) => (
@@ -310,9 +313,9 @@ const ClipsDirectory = () => {
                             <Clip clip={clips[clipIndex]} autoPlay={autoPlay} setAutoPlay={setAutoPlay} />
                         </ModalContainer>
                     </Modal>
-                </div>
+                </>
             )}
-        </>
+        </div>
     );
 };
 

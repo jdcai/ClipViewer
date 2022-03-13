@@ -1,6 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import 'fontsource-roboto';
-
 import { Button, TextField, Autocomplete } from '@mui/material';
 import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';

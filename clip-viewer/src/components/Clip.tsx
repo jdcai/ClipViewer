@@ -1,5 +1,4 @@
 import React from 'react';
-import 'fontsource-roboto';
 import { Switch, FormControlLabel } from '@mui/material';
 import styled from 'styled-components';
 import { useLocation } from 'react-router-dom';
