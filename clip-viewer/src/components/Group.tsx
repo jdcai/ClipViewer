@@ -1,13 +1,11 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import 'fontsource-roboto';
-
-import { TextField, Autocomplete } from '@mui/material';
+import { TextField, Autocomplete, IconButton } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 import ClearIcon from '@mui/icons-material/Clear';
 import DeleteIcon from '@mui/icons-material/Delete';
 import styled from 'styled-components';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import useUserStore from '../stores/UserStore';
 import { getUserFollows } from '../services/UserService';
 
@@ -99,7 +97,7 @@ const Group = (props: {
         }
     }, []);
 
-    const addToGroup = () => {
+    const addUser = () => {
         if (
             selectedUser &&
             !group.users.some((user) => {
@@ -122,9 +120,21 @@ const Group = (props: {
     };
 
     const deleteGroup = () => {
-        setIsEditingGroup(false);
         const { [id]: removedGroup, ...restOfTheGroups } = groups;
         setGroups(restOfTheGroups);
+        setIsEditingGroup(false);
+    };
+
+    const removeUser = (userId: string) => {
+        const users = group.users.filter((user) => user.id !== userId);
+        setGroups({
+            ...groups,
+            [id]: {
+                ...groups[id],
+                users: users,
+            },
+        });
+        setIsEditingGroup(false);
     };
 
     return (
@@ -134,22 +144,26 @@ const Group = (props: {
                     <GroupNameContainer>
                         <GroupName
                             title={groupName}
-                            onClick={() =>
-                                navigate('clips', {
-                                    replace: true,
-                                    state: {
-                                        title: groupName,
-                                        broadcasters: group.users.map((user) => {
-                                            return user.id;
-                                        }),
-                                    },
-                                })
-                            }
+                            onClick={() => {
+                                if (group.users.length) {
+                                    navigate('clips', {
+                                        replace: true,
+                                        state: {
+                                            title: groupName,
+                                            broadcasters: group.users.map((user) => {
+                                                return user.id;
+                                            }),
+                                        },
+                                    });
+                                }
+                            }}
                         >
                             {groupName}
                         </GroupName>
                         <Container>
-                            <EditIcon fontSize="small" onClick={() => setIsEditingGroup(true)} />
+                            <IconButton aria-label="Edit group" title="Edit group">
+                                <EditIcon fontSize="small" onClick={() => setIsEditingGroup(true)} />
+                            </IconButton>
                         </Container>
                     </GroupNameContainer>
                 )}
@@ -166,19 +180,31 @@ const Group = (props: {
                             onBlur={(result) => saveGroupName(result.currentTarget.value)}
                             variant="outlined"
                         ></TextField>
-                        <EditIcon fontSize="small" onClick={() => setIsEditingGroup(false)} />
-                        <DeleteIcon onClick={() => deleteGroup()} />
+                        <IconButton aria-label="Stop editing" title="Stop editing">
+                            <EditIcon fontSize="small" onClick={() => setIsEditingGroup(false)} />
+                        </IconButton>
+                        <IconButton aria-label="Delete group" title="Delete group">
+                            <DeleteIcon onClick={() => deleteGroup()} />
+                        </IconButton>
                     </EditGroupNameContainer>
                 )}
                 {group.users.map((user) => {
                     return (
                         <NameContainer key={user.id}>
                             <div>-{user.name}</div>
-                            {isEditingGroup && <ClearIcon />}
+                            {isEditingGroup && (
+                                <IconButton aria-label="Remove user" title="Remove user">
+                                    <ClearIcon onClick={() => removeUser(user.id)} />
+                                </IconButton>
+                            )}
                         </NameContainer>
                     );
                 })}
-                {isEditingGroup && !isAddingUser && <AddIcon onClick={() => setIsAddingUser(true)} />}
+                {isEditingGroup && !isAddingUser && (
+                    <IconButton aria-label="Add user" title="Add user">
+                        <AddIcon onClick={() => setIsAddingUser(true)} />
+                    </IconButton>
+                )}
                 {isEditingGroup && isAddingUser && (
                     <AddNameContainer>
                         <Autocomplete
@@ -192,7 +218,9 @@ const Group = (props: {
                                 <TextField {...params} label="Username" variant="outlined" size="small" />
                             )}
                         />
-                        <AddIcon onClick={() => addToGroup()} />
+                        <IconButton aria-label="Add user" title="Add user">
+                            <AddIcon onClick={() => addUser()} />
+                        </IconButton>
                     </AddNameContainer>
                 )}
             </GroupComponentContainer>
