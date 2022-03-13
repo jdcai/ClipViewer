@@ -26,6 +26,9 @@ const GroupNameContainer = styled.div`
 
 const GroupName = styled.div`
     cursor: pointer;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 `;
 
 const EditGroupNameContainer = styled.div`
@@ -130,10 +133,12 @@ const Group = (props: {
                 {!isEditingGroup && (
                     <GroupNameContainer>
                         <GroupName
+                            title={groupName}
                             onClick={() =>
                                 navigate('clips', {
                                     replace: true,
                                     state: {
+                                        title: groupName,
                                         broadcasters: group.users.map((user) => {
                                             return user.id;
                                         }),

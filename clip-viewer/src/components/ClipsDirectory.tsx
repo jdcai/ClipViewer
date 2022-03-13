@@ -58,6 +58,13 @@ const CreatedDate = styled(ClipInfo)`
     bottom: 0;
     right: 0;
 `;
+const TopContainer = styled.div`
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+`;
+
+const Controls = styled.div``;
 
 const ModalContainer = styled.div`
     position: absolute;
@@ -77,6 +84,7 @@ const ModalContainer = styled.div`
 `;
 
 interface LocationState {
+    title: string;
     broadcasters: string[];
 }
 
@@ -86,8 +94,8 @@ const ClipsDirectory = () => {
     const location = useLocation();
     const locationState = location.state as LocationState;
     const timeIntervalsArr = ['Day', 'Week', 'Month', 'Year', 'All Time', 'Custom'];
+    const [title, setTitle] = useState<string>('');
     const [broadcasters, setBroadcasters] = useState<string[]>([]);
-
     const [clips, setClips] = useState<any[]>([]);
     const [clipIndex, setClipIndex] = useState(0);
     const [autoPlay, setAutoPlay] = useState(false);
@@ -189,8 +197,9 @@ const ClipsDirectory = () => {
     }, [broadcasters]);
 
     useEffect(() => {
+        setTitle(locationState?.title);
         setBroadcasters(locationState?.broadcasters ?? []);
-    }, [locationState.broadcasters]);
+    }, [locationState]);
 
     const handleKey = (e: KeyboardEvent) => {
         if (e.code === 'ArrowRight') {
@@ -227,70 +236,83 @@ const ClipsDirectory = () => {
     }, [clipIndex, autoPlay]);
 
     return (
-        <div>
-            <InputLabel id="label">Top</InputLabel>
-            <Select labelId="label" id="select" onChange={(e) => handleintervalChange(e)} defaultValue={timeInterval}>
-                {timeIntervalsArr.map((v) => {
-                    return (
-                        <MenuItem key={v} value={v}>
-                            {v}
-                        </MenuItem>
-                    );
-                })}
-            </Select>
-            {timeInterval === 'Custom' && (
-                <LocalizationProvider dateAdapter={DateAdapter}>
-                    <DatePicker
-                        label="Start date"
-                        value={startDate}
-                        onChange={(newValue) => {
-                            setStartDate(newValue);
-                        }}
-                        renderInput={(params) => <TextField {...params} />}
-                    />
-                    <DatePicker
-                        label="End date"
-                        value={endDate}
-                        onChange={(newValue) => {
-                            const endOfDay = newValue?.endOf('day');
-                            setEndDate(endOfDay ?? null);
-                        }}
-                        renderInput={(params) => <TextField {...params} />}
-                    />
-                </LocalizationProvider>
-            )}
-
-            <div>
-                {clips &&
-                    clips.map((clip, index) => (
-                        <ClipContainer key={clip.id}>
-                            <ClipImageContainer
-                                onClick={() => {
-                                    setClipIndex(index);
-                                    setOpenModal(true);
-                                }}
-                                // onClick={() => navigate.push('clip', { clips: clips, currentClip: clip, index: index })}
+        <>
+            {broadcasters.length > 0 && (
+                <div>
+                    <TopContainer>
+                        <h1>{title}</h1>
+                        <Controls>
+                            <InputLabel id="label">Top</InputLabel>
+                            <Select
+                                labelId="label"
+                                id="select"
+                                onChange={(e) => handleintervalChange(e)}
+                                defaultValue={timeInterval}
                             >
-                                <img src={clip?.thumbnail_url}></img>
-                                <Duration>
-                                    {moment
-                                        .duration(Math.round(clip?.duration), 'seconds')
-                                        .format('m:ss', { trim: false })}
-                                </Duration>
-                                <ViewCount>{clip?.view_count} views</ViewCount>
-                                <CreatedDate>{moment(clip?.created_at).fromNow()}</CreatedDate>
-                            </ClipImageContainer>
-                            <ClipTitle title={clip?.title}>{clip?.title}</ClipTitle>
-                            <ClipBroadcaster>{clip?.broadcaster_name}</ClipBroadcaster>
-                        </ClipContainer>
-                    ))}
-            </div>
-            <Modal open={openModal} onClose={handleModalClose}>
-                <ModalContainer>
-                    <Clip clip={clips[clipIndex]} autoPlay={autoPlay} setAutoPlay={setAutoPlay} />
-                </ModalContainer>
-            </Modal>
-        </div>
+                                {timeIntervalsArr.map((v) => {
+                                    return (
+                                        <MenuItem key={v} value={v}>
+                                            {v}
+                                        </MenuItem>
+                                    );
+                                })}
+                            </Select>
+                            {timeInterval === 'Custom' && (
+                                <LocalizationProvider dateAdapter={DateAdapter}>
+                                    <DatePicker
+                                        label="Start date"
+                                        value={startDate}
+                                        onChange={(newValue) => {
+                                            setStartDate(newValue);
+                                        }}
+                                        renderInput={(params) => <TextField {...params} />}
+                                    />
+                                    <DatePicker
+                                        label="End date"
+                                        value={endDate}
+                                        onChange={(newValue) => {
+                                            const endOfDay = newValue?.endOf('day');
+                                            setEndDate(endOfDay ?? null);
+                                        }}
+                                        renderInput={(params) => <TextField {...params} />}
+                                    />
+                                </LocalizationProvider>
+                            )}
+                        </Controls>
+                    </TopContainer>
+                    <div>
+                        {clips &&
+                            clips.map((clip, index) => (
+                                <ClipContainer key={clip.id}>
+                                    <ClipImageContainer
+                                        onClick={() => {
+                                            setClipIndex(index);
+                                            setOpenModal(true);
+                                        }}
+                                        // onClick={() => navigate.push('clip', { clips: clips, currentClip: clip, index: index })}
+                                    >
+                                        <img src={clip?.thumbnail_url}></img>
+                                        <Duration>
+                                            {moment
+                                                .duration(Math.round(clip?.duration), 'seconds')
+                                                .format('m:ss', { trim: false })}
+                                        </Duration>
+                                        <ViewCount>{clip?.view_count} views</ViewCount>
+                                        <CreatedDate>{moment(clip?.created_at).fromNow()}</CreatedDate>
+                                    </ClipImageContainer>
+                                    <ClipTitle title={clip?.title}>{clip?.title}</ClipTitle>
+                                    <ClipBroadcaster>{clip?.broadcaster_name}</ClipBroadcaster>
+                                </ClipContainer>
+                            ))}
+                    </div>
+                    <Modal open={openModal} onClose={handleModalClose}>
+                        <ModalContainer>
+                            <Clip clip={clips[clipIndex]} autoPlay={autoPlay} setAutoPlay={setAutoPlay} />
+                        </ModalContainer>
+                    </Modal>
+                </div>
+            )}
+        </>
     );
 };
 

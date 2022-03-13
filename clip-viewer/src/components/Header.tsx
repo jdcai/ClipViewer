@@ -160,9 +160,14 @@ const Header = () => {
                             <Button
                                 variant="contained"
                                 color="primary"
-                                onClick={() =>
-                                    navigate('clips', { replace: true, state: { broadcasters: [broadcaster.to_id] } })
-                                }
+                                onClick={() => {
+                                    if (broadcaster?.to_id) {
+                                        navigate('clips', {
+                                            replace: true,
+                                            state: { title: broadcaster.to_name, broadcasters: [broadcaster.to_id] },
+                                        });
+                                    }
+                                }}
                             >
                                 Get Clips
                             </Button>
