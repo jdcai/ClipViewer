@@ -87,8 +87,6 @@ const Group = (props: {
     const [groupName, setGroupName] = useState(group.name);
     const navigate = useNavigate();
 
-    // const location = useLocation<any>();
-
     useEffect(() => {
         if (!userFollows) {
             getUserFollows().then((result) => {
@@ -96,6 +94,11 @@ const Group = (props: {
             });
         }
     }, []);
+
+    const resetEditing = () => {
+        setIsEditingGroup(false);
+        setIsAddingUser(false);
+    };
 
     const addUser = () => {
         if (
@@ -122,7 +125,6 @@ const Group = (props: {
     const deleteGroup = () => {
         const { [id]: removedGroup, ...restOfTheGroups } = groups;
         setGroups(restOfTheGroups);
-        setIsEditingGroup(false);
     };
 
     const removeUser = (userId: string) => {
@@ -134,7 +136,6 @@ const Group = (props: {
                 users: users,
             },
         });
-        setIsEditingGroup(false);
     };
 
     return (
@@ -161,8 +162,12 @@ const Group = (props: {
                             {groupName}
                         </GroupName>
                         <Container>
-                            <IconButton aria-label="Edit group" title="Edit group">
-                                <EditIcon fontSize="small" onClick={() => setIsEditingGroup(true)} />
+                            <IconButton
+                                aria-label="Edit group"
+                                title="Edit group"
+                                onClick={() => setIsEditingGroup(true)}
+                            >
+                                <EditIcon fontSize="small" />
                             </IconButton>
                         </Container>
                     </GroupNameContainer>
@@ -180,11 +185,11 @@ const Group = (props: {
                             onBlur={(result) => saveGroupName(result.currentTarget.value)}
                             variant="outlined"
                         ></TextField>
-                        <IconButton aria-label="Stop editing" title="Stop editing">
-                            <EditIcon fontSize="small" onClick={() => setIsEditingGroup(false)} />
+                        <IconButton aria-label="Stop editing" title="Stop editing" onClick={() => resetEditing()}>
+                            <EditIcon fontSize="small" />
                         </IconButton>
-                        <IconButton aria-label="Delete group" title="Delete group">
-                            <DeleteIcon onClick={() => deleteGroup()} />
+                        <IconButton aria-label="Delete group" title="Delete group" onClick={() => deleteGroup()}>
+                            <DeleteIcon />
                         </IconButton>
                     </EditGroupNameContainer>
                 )}
@@ -193,16 +198,20 @@ const Group = (props: {
                         <NameContainer key={user.id}>
                             <div>-{user.name}</div>
                             {isEditingGroup && (
-                                <IconButton aria-label="Remove user" title="Remove user">
-                                    <ClearIcon onClick={() => removeUser(user.id)} />
+                                <IconButton
+                                    aria-label="Remove user"
+                                    title="Remove user"
+                                    onClick={() => removeUser(user.id)}
+                                >
+                                    <ClearIcon />
                                 </IconButton>
                             )}
                         </NameContainer>
                     );
                 })}
                 {isEditingGroup && !isAddingUser && (
-                    <IconButton aria-label="Add user" title="Add user">
-                        <AddIcon onClick={() => setIsAddingUser(true)} />
+                    <IconButton aria-label="Add user" title="Add user" onClick={() => setIsAddingUser(true)}>
+                        <AddIcon />
                     </IconButton>
                 )}
                 {isEditingGroup && isAddingUser && (
@@ -218,8 +227,8 @@ const Group = (props: {
                                 <TextField {...params} label="Username" variant="outlined" size="small" />
                             )}
                         />
-                        <IconButton aria-label="Add user" title="Add user">
-                            <AddIcon onClick={() => addUser()} />
+                        <IconButton aria-label="Add user" title="Add user" onClick={() => addUser()}>
+                            <AddIcon />
                         </IconButton>
                     </AddNameContainer>
                 )}
