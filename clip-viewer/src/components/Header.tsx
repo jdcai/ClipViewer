@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { alpha } from '@mui/material/styles';
 import { AppBar, Toolbar, Typography, Button, IconButton, Autocomplete, InputBase } from '@mui/material';
 import axios from 'axios';
 import styled from 'styled-components';
@@ -68,10 +67,15 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 const AutocompleteContainer = styled.div`
     display: flex;
+    align-items: center;
 `;
 
 const AppBarContainer = styled(withTheme(AppBar))`
     z-index: ${(props) => props.theme.zIndex.drawer + 1};
+`;
+
+const GetClipsButton = styled(Button)`
+    margin-left: 0.5rem;
 `;
 
 const DrawerContainer = styled(Drawer)`
@@ -157,7 +161,7 @@ const Header = () => {
                                     </Search>
                                 )}
                             />
-                            <Button
+                            <GetClipsButton
                                 variant="contained"
                                 color="primary"
                                 onClick={() => {
@@ -170,7 +174,7 @@ const Header = () => {
                                 }}
                             >
                                 Get Clips
-                            </Button>
+                            </GetClipsButton>
                         </AutocompleteContainer>
                     </Center>
                     <End>
