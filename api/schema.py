@@ -46,22 +46,19 @@ def get_clips(broadcaster_ids, started_at, ended_at):
 
     return json.dumps(clips)
 
+def get_users(login_names):
+    if len(login_names)!=0:
+        client = twitch.TwitchHelix(client_id=os.getenv('CLIENT_ID'), oauth_token=session['token'])         
+        channel = client.get_users(login_names=login_names)
+    return json.dumps(channel)
+
 class Query(ObjectType):
-    # this defines a Field `hello` in our Schema with a single Argument `name`
-    hello = String(name=String(default_value="stranger"))
-    goodbye = String()
     clips = String(broadcaster_ids=List(String), started_at=String(),ended_at=String())
     follows = String(user_id=String())
+    users = String(login_names=List(String))
 
     # our Resolver method takes the GraphQL context (root, info) as well as
     # Argument (name) for the Field and returns data for the query Response
-    def resolve_hello(root, info, name):
-        return session.get('currentUser')['id']
-
-    def resolve_goodbye(root, info):
-        return 'See ya!'
-
-
     def resolve_follows(root, info, user_id):
         try:    
             return get_follows(user_id)
@@ -76,4 +73,11 @@ class Query(ObjectType):
             refresh_token()
             return get_clips(broadcaster_ids, started_at, ended_at)
         
+    def resolve_users(root, info, login_names):
+        try:    
+            return get_users(login_names)
+        except requests.exceptions.HTTPError:
+            refresh_token()
+            return get_users(login_names)
+    
 schema = Schema(query=Query)
