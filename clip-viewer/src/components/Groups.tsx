@@ -1,14 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Button, TextField, Autocomplete } from '@mui/material';
+import { List, ListItemButton, ListItemText, ListSubheader } from '@mui/material';
 import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useUserStore from '../stores/UserStore';
-import axios from 'axios';
 import Group from './Group';
 import { v4 as uuidv4 } from 'uuid';
 
-const GroupsContainer = styled.div`
-    margin: 0.5rem;
+const CustomListItemButton = styled(ListItemButton)`
+    position: absolute;
+    bottom: 0;
+    width: 100%;
 `;
 
 interface FollowingUser {
@@ -33,44 +34,22 @@ const Groups = () => {
     const location = useLocation();
     const currentUser: any = useUserStore((state) => state.currentUser);
     const [isNew, setIsEditing] = useState<EditingStates>({});
-    const [follows, setFollows] = useState([]);
     const [groups, setGroups] = useState<GroupContainer>({});
     const navigate = useNavigate();
     const isInitialMount = useRef(true);
 
     useEffect(() => {
-        const tempGroups = localStorage.getItem('groups');
+        const tempGroups = localStorage.getItem(`${currentUser.id}-groups`);
         if (tempGroups) {
             setGroups(JSON.parse(tempGroups));
         }
-        axios
-            .post('/graphql', {
-                method: 'POST',
-                query: `
-            {
-                follows(userId:"")
-            }
-            `,
-            })
-            .then((result) => {
-                setFollows(JSON.parse(result.data.data.follows));
-            })
-            // Note: it's important to handle errors here
-            // instead of a catch() block so that we don't swallow
-            // exceptions from actual bugs in components.
-
-            .catch((error) => {
-                if (error.response && error.response.status === 401) {
-                    console.log(error);
-                }
-            });
-    }, []);
+    }, [currentUser]);
 
     useEffect(() => {
         if (isInitialMount.current) {
             isInitialMount.current = false;
         } else {
-            localStorage.setItem('groups', JSON.stringify(groups));
+            localStorage.setItem(`${currentUser.id}-groups`, JSON.stringify(groups));
         }
     }, [groups]);
 
@@ -81,25 +60,35 @@ const Groups = () => {
     };
 
     return (
-        <GroupsContainer>
-            {groups &&
-                Object.keys(groups).map((groupID) => {
-                    return (
-                        <Group
-                            key={groupID}
-                            id={groupID}
-                            group={groups[groupID]}
-                            groups={groups}
-                            setGroups={setGroups}
-                            isNew={isNew[groupID]}
-                        ></Group>
-                    );
-                })}
-
-            <Button variant="contained" color="primary" onClick={() => createGroup()}>
-                Create Group
-            </Button>
-        </GroupsContainer>
+        <>
+            <List
+                component="nav"
+                dense
+                aria-labelledby="groups-subheader"
+                subheader={
+                    <ListSubheader component="div" id="groups-subheader">
+                        Groups
+                    </ListSubheader>
+                }
+            >
+                {groups &&
+                    Object.keys(groups).map((groupID) => {
+                        return (
+                            <Group
+                                key={groupID}
+                                id={groupID}
+                                group={groups[groupID]}
+                                groups={groups}
+                                setGroups={setGroups}
+                                isNew={isNew[groupID]}
+                            ></Group>
+                        );
+                    })}
+            </List>
+            <CustomListItemButton onClick={() => createGroup()}>
+                <ListItemText>Create new group</ListItemText>
+            </CustomListItemButton>
+        </>
     );
 };
 

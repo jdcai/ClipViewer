@@ -1,5 +1,14 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import { TextField, Autocomplete, IconButton } from '@mui/material';
+import {
+    TextField,
+    Autocomplete,
+    IconButton,
+    Collapse,
+    List,
+    ListItemButton,
+    ListItemText,
+    ListItem,
+} from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 import ClearIcon from '@mui/icons-material/Clear';
@@ -7,19 +16,11 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import useUserStore from '../stores/UserStore';
-import { getUserFollows } from '../services/UserService';
+import { getUserFollows, getUsers } from '../services/UserService';
+import { ExpandLess, ExpandMore, OpenInNew } from '@mui/icons-material';
 
 const GroupComponentContainer = styled.div`
     margin-bottom: 8px;
-`;
-
-const GroupNameContainer = styled.div`
-    align-items: center;
-    font-weight: 600;
-    display: flex;
-    svg {
-        margin-left: 4px;
-    }
 `;
 
 const GroupName = styled.div`
@@ -29,20 +30,10 @@ const GroupName = styled.div`
     overflow: hidden;
 `;
 
-const EditGroupNameContainer = styled.div`
-    margin-top: 8px;
-    align-items: center;
-    display: flex;
-    svg {
-        margin-left: 4px;
-    }
-`;
-
 const NameContainer = styled.div`
-    display: flex;
-    svg {
-        margin-left: 4px;
-    }
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 `;
 
 const Container = styled.div`
@@ -50,12 +41,23 @@ const Container = styled.div`
     display: flex;
 `;
 
-const AddNameContainer = styled.div`
-    align-items: center;
-    display: flex;
-    margin-top: 8px;
+const IndentedListItemButton = styled(ListItemButton)`
+    padding: 0 2rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 `;
 
+const IndentedListItem = styled(ListItem)`
+    padding-left: 2rem;
+`;
+
+const CustomTextField = styled(TextField)`
+    & .MuiFormHelperText-root.Mui-error {
+        position: absolute;
+        top: 80%;
+    }
+`;
 interface FollowingUser {
     name: string;
     id: string;
@@ -81,10 +83,12 @@ const Group = (props: {
     const userFollows: any = useUserStore((state) => state.userFollows);
     const setUserFollows = useUserStore((state) => state.setUserFollows);
 
-    const [selectedUser, setSelectedUser] = useState<any>();
+    // const [selectedUser, setSelectedUser] = useState<any>();
     const [isEditingGroup, setIsEditingGroup] = useState(isNew);
     const [isAddingUser, setIsAddingUser] = useState(false);
     const [groupName, setGroupName] = useState(group.name);
+    const [hasUserError, setHasUserError] = useState(false);
+    const [expanded, setExpanded] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -100,18 +104,18 @@ const Group = (props: {
         setIsAddingUser(false);
     };
 
-    const addUser = () => {
+    const addUser = (newUser: any) => {
         if (
-            selectedUser &&
+            newUser &&
             !group.users.some((user) => {
-                return user.id === selectedUser.to_id;
+                return user.id === newUser.to_id;
             })
         ) {
             setGroups({
                 ...groups,
                 [id]: {
                     ...groups[id],
-                    users: [...groups[id].users, { name: selectedUser?.to_name, id: selectedUser?.to_id }],
+                    users: [...groups[id].users, { name: newUser?.to_name, id: newUser?.to_id }],
                 },
             });
         }
@@ -138,42 +142,73 @@ const Group = (props: {
         });
     };
 
+    const checkSelectedUser = async (value: any) => {
+        if (!value) {
+            setHasUserError(false);
+            return;
+        }
+
+        if (typeof value === 'string') {
+            const users = await getUsers([value]);
+
+            if (users?.length) {
+                addUser({ to_name: users[0].display_name, to_id: users[0].id });
+                setHasUserError(false);
+            } else {
+                setHasUserError(true);
+            }
+        } else {
+            addUser(value);
+            setHasUserError(false);
+        }
+    };
+
     return (
         <>
             <GroupComponentContainer>
                 {!isEditingGroup && (
-                    <GroupNameContainer>
-                        <GroupName
-                            title={groupName}
-                            onClick={() => {
-                                if (group.users.length) {
-                                    navigate('clips', {
-                                        replace: true,
-                                        state: {
-                                            title: groupName,
-                                            broadcasters: group.users.map((user) => {
-                                                return user.id;
-                                            }),
-                                        },
-                                    });
-                                }
-                            }}
-                        >
-                            {groupName}
-                        </GroupName>
-                        <Container>
-                            <IconButton
-                                aria-label="Edit group"
-                                title="Edit group"
-                                onClick={() => setIsEditingGroup(true)}
-                            >
-                                <EditIcon fontSize="small" />
-                            </IconButton>
-                        </Container>
-                    </GroupNameContainer>
+                    <>
+                        <ListItemButton onClick={() => setExpanded(!expanded)}>
+                            <ListItemText primary={<GroupName title={groupName}>{groupName}</GroupName>} />
+                            <Container>
+                                {group.users.length > 0 && (
+                                    <IconButton
+                                        aria-label="Get clips"
+                                        title="Get clips"
+                                        onClick={(event: any) => {
+                                            event.stopPropagation();
+
+                                            navigate('clips', {
+                                                replace: true,
+                                                state: {
+                                                    title: groupName,
+                                                    broadcasters: group.users.map((user) => {
+                                                        return user.id;
+                                                    }),
+                                                },
+                                            });
+                                        }}
+                                    >
+                                        <OpenInNew fontSize="small" />
+                                    </IconButton>
+                                )}
+                                <IconButton
+                                    aria-label="Edit group"
+                                    title="Edit group"
+                                    onClick={(event: any) => {
+                                        event.stopPropagation();
+                                        setIsEditingGroup(true);
+                                    }}
+                                >
+                                    <EditIcon fontSize="small" />
+                                </IconButton>
+                            </Container>
+                            {expanded ? <ExpandLess /> : <ExpandMore />}
+                        </ListItemButton>
+                    </>
                 )}
                 {isEditingGroup && (
-                    <EditGroupNameContainer>
+                    <ListItem disablePadding>
                         <TextField
                             label="Group Name"
                             value={groupName}
@@ -191,46 +226,75 @@ const Group = (props: {
                         <IconButton aria-label="Delete group" title="Delete group" onClick={() => deleteGroup()}>
                             <DeleteIcon />
                         </IconButton>
-                    </EditGroupNameContainer>
+                    </ListItem>
                 )}
-                {group.users.map((user) => {
-                    return (
-                        <NameContainer key={user.id}>
-                            <div>-{user.name}</div>
-                            {isEditingGroup && (
-                                <IconButton
-                                    aria-label="Remove user"
-                                    title="Remove user"
-                                    onClick={() => removeUser(user.id)}
-                                >
-                                    <ClearIcon />
-                                </IconButton>
-                            )}
-                        </NameContainer>
-                    );
-                })}
+
+                <Collapse in={expanded || isEditingGroup} timeout="auto" unmountOnExit>
+                    <List dense component="div" disablePadding>
+                        {group.users.map((user) => {
+                            return (
+                                <ListItem key={user.id} disablePadding>
+                                    <IndentedListItemButton
+                                        onClick={() =>
+                                            navigate('clips', {
+                                                replace: true,
+                                                state: { title: user.name, broadcasters: [user.id] },
+                                            })
+                                        }
+                                    >
+                                        <ListItemText primary={<NameContainer>{user.name}</NameContainer>} />
+                                    </IndentedListItemButton>
+                                    {isEditingGroup && (
+                                        <IconButton
+                                            aria-label="Remove user"
+                                            title="Remove user"
+                                            onClick={() => removeUser(user.id)}
+                                        >
+                                            <ClearIcon />
+                                        </IconButton>
+                                    )}
+                                </ListItem>
+                            );
+                        })}
+                    </List>
+                </Collapse>
+
                 {isEditingGroup && !isAddingUser && (
-                    <IconButton aria-label="Add user" title="Add user" onClick={() => setIsAddingUser(true)}>
-                        <AddIcon />
-                    </IconButton>
-                )}
-                {isEditingGroup && isAddingUser && (
-                    <AddNameContainer>
-                        <Autocomplete
-                            freeSolo={true}
-                            id="combo-box-demo"
-                            options={userFollows}
-                            getOptionLabel={(option: any) => option.to_name}
-                            onChange={(_0, value: any) => setSelectedUser(value)}
-                            style={{ width: '100%' }}
-                            renderInput={(params: unknown) => (
-                                <TextField {...params} label="Username" variant="outlined" size="small" />
-                            )}
-                        />
-                        <IconButton aria-label="Add user" title="Add user" onClick={() => addUser()}>
+                    <ListItem>
+                        <IconButton aria-label="Add user" title="Add user" onClick={() => setIsAddingUser(true)}>
                             <AddIcon />
                         </IconButton>
-                    </AddNameContainer>
+                    </ListItem>
+                )}
+                {isEditingGroup && isAddingUser && (
+                    <IndentedListItem>
+                        <Autocomplete
+                            freeSolo
+                            id="combo-box-demo"
+                            options={userFollows}
+                            onChange={(_0: any, value: any) => checkSelectedUser(value)}
+                            style={{ width: '100%' }}
+                            getOptionLabel={(option: any) => option.to_name ?? option}
+                            isOptionEqualToValue={(option: any, value: any) => {
+                                const valueUser = typeof value === 'string' ? value : value.to_login;
+                                return option?.to_login === valueUser?.toLowerCase();
+                            }}
+                            openOnFocus
+                            renderInput={(params: unknown) => (
+                                <CustomTextField
+                                    {...params}
+                                    label="Username"
+                                    variant="outlined"
+                                    size="small"
+                                    error={hasUserError}
+                                    helperText={hasUserError ? 'User does not exist' : ''}
+                                />
+                            )}
+                        />
+                        {/* <IconButton aria-label="Add user" title="Add user" onClick={() => addUser(selectedUser)}>
+                            <AddIcon />
+                        </IconButton> */}
+                    </IndentedListItem>
                 )}
             </GroupComponentContainer>
         </>
