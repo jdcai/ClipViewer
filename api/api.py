@@ -9,7 +9,7 @@ import urllib.parse
 from flask_graphql import GraphQLView
 from schema import schema
 
-app = Flask(__name__)
+app = Flask(__name__,static_folder='../clip-viewer/build',static_url_path='')
 app.secret_key = os.getenv('FLASK_SECRET_KEY'),
 app.add_url_rule(
     '/graphql',
