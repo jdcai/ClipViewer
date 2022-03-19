@@ -10,7 +10,6 @@ import { drawerWidth } from '../Constants';
 import MenuIcon from '@mui/icons-material/Menu';
 import { getUserFollows, getUsers } from '../services/UserService';
 import { useNavigate } from 'react-router';
-import SearchIcon from '@mui/icons-material/Search';
 
 const ToolbarContainer = styled(Toolbar)`
     align-items: center;
@@ -33,10 +32,6 @@ const AutocompleteContainer = styled.div`
 
 const AppBarContainer = styled(withTheme(AppBar))`
     z-index: ${(props) => props.theme.zIndex.drawer + 1};
-`;
-
-const GetClipsButton = styled(Button)`
-    margin-left: 0.5rem;
 `;
 
 const DrawerContainer = styled(Drawer)`

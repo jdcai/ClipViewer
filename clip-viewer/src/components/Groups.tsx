@@ -6,10 +6,13 @@ import useUserStore from '../stores/UserStore';
 import Group from './Group';
 import { v4 as uuidv4 } from 'uuid';
 
-const CustomListItemButton = styled(ListItemButton)`
-    position: absolute;
-    bottom: 0;
+const CustomListItemButton = styled.div`
+    margin-top: auto;
     width: 100%;
+`;
+
+const ListContainer = styled.div`
+    overflow-y: auto;
 `;
 
 interface FollowingUser {
@@ -61,32 +64,36 @@ const Groups = () => {
 
     return (
         <>
-            <List
-                component="nav"
-                dense
-                aria-labelledby="groups-subheader"
-                subheader={
-                    <ListSubheader component="div" id="groups-subheader">
-                        Groups
-                    </ListSubheader>
-                }
-            >
-                {groups &&
-                    Object.keys(groups).map((groupID) => {
-                        return (
-                            <Group
-                                key={groupID}
-                                id={groupID}
-                                group={groups[groupID]}
-                                groups={groups}
-                                setGroups={setGroups}
-                                isNew={isNew[groupID]}
-                            ></Group>
-                        );
-                    })}
-            </List>
-            <CustomListItemButton onClick={() => createGroup()}>
-                <ListItemText>Create new group</ListItemText>
+            <ListContainer>
+                <List
+                    component="nav"
+                    dense
+                    aria-labelledby="groups-subheader"
+                    subheader={
+                        <ListSubheader component="div" id="groups-subheader">
+                            Groups
+                        </ListSubheader>
+                    }
+                >
+                    {groups &&
+                        Object.keys(groups).map((groupID) => {
+                            return (
+                                <Group
+                                    key={groupID}
+                                    id={groupID}
+                                    group={groups[groupID]}
+                                    groups={groups}
+                                    setGroups={setGroups}
+                                    isNew={isNew[groupID]}
+                                ></Group>
+                            );
+                        })}
+                </List>
+            </ListContainer>
+            <CustomListItemButton>
+                <ListItemButton onClick={() => createGroup()}>
+                    <ListItemText>Create new group</ListItemText>
+                </ListItemButton>
             </CustomListItemButton>
         </>
     );
