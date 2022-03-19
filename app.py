@@ -3,13 +3,13 @@ import json
 import requests
 import time
 import pprint
-from flask import Flask, session, jsonify, request
+from flask import Flask, session, jsonify, request,send_from_directory
 import twitch
 import urllib.parse
 from flask_graphql import GraphQLView
-from schema import schema
+from api.schema import schema
 
-app = Flask(__name__,static_folder='../clip-viewer/build',static_url_path='')
+app = Flask(__name__,static_folder='clip-viewer/build',static_url_path='')
 app.secret_key = os.getenv('FLASK_SECRET_KEY'),
 app.add_url_rule(
     '/graphql',
@@ -41,6 +41,7 @@ def refresh_token():
     session['refresh_token'] = r.json()["refresh_token"]
     print('Token refreshed')
     print(r.json())
+
 
 #to validate if you have an access token
 @app.route('/validate')
@@ -114,3 +115,11 @@ def get_streams():
     client=twitch.TwitchHelix(client_id=os.getenv('CLIENT_ID'), oauth_token=session['token'])
     streams = client.get_streams()
     return jsonify(streams._queue)
+
+@app.route('/')
+def serve():
+    return send_from_directory(app.static_folder,'index.html')
+
+@app.errorhandler(404)
+def not_found(e):
+    return app.send_static_file('index.html')
