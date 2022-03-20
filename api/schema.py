@@ -66,7 +66,7 @@ class Query(ObjectType):
             refresh_token()
             return get_follows(user_id)
 
-    def resolve_clips(root, info, broadcaster_ids, started_at, ended_at):
+    def resolve_clips(root, info, broadcaster_ids, started_at=None, ended_at=None):
         try:
             return get_clips(broadcaster_ids, started_at, ended_at)
         except requests.exceptions.HTTPError:

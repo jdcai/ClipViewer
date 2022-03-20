@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button, TextField, Select, InputLabel, MenuItem, Modal } from '@mui/material/';
 import styled from 'styled-components';
 import DateAdapter from '@mui/lab/AdapterMoment';
@@ -9,11 +9,12 @@ import { useNavigate, useLocation, Location } from 'react-router-dom';
 import axios from 'axios';
 
 import Clip from './Clip';
+import { getClips } from '../services/ClipService';
 
 const ClipContainer = styled.div`
     margin: 0.5rem;
     display: inline-block;
-    width: 30rem;
+    width: 300px;
 `;
 
 const ClipImageContainer = styled.div`
@@ -21,7 +22,6 @@ const ClipImageContainer = styled.div`
     cursor: pointer;
 `;
 const ClipTitle = styled.div`
-    display: flex;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
@@ -33,7 +33,6 @@ const Title = styled.h1`
     overflow: hidden;
 `;
 const ClipBroadcaster = styled.div`
-    display: flex;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
@@ -62,11 +61,23 @@ const CreatedDate = styled(ClipInfo)`
 const TopContainer = styled.div`
     padding: 0 20px;
     display: flex;
+    align-items: center;
     justify-content: space-between;
 `;
 
-const Controls = styled.div``;
+const Controls = styled.div`
+    display: flex;
+    align-items: center;
+`;
 
+const TopLabel = styled(InputLabel)`
+    margin-right: 0.5rem;
+    display: inline-block;
+`;
+
+const DateTextField = styled(TextField)`
+    width: 160px;
+`;
 const ModalContainer = styled.div`
     position: absolute;
     top: 50%;
@@ -84,6 +95,14 @@ const ModalContainer = styled.div`
     outline: 0;
 `;
 
+enum TimeInterval {
+    Day = 'Day',
+    Week = 'Week',
+    Month = 'Month',
+    Year = 'Year',
+    All = 'All Time',
+    Custom = 'Custom',
+}
 interface LocationState {
     title: string;
     broadcasters: string[];
@@ -94,7 +113,7 @@ let globalf: NodeJS.Timeout;
 const ClipsDirectory = () => {
     const location = useLocation();
     const locationState = location.state as LocationState;
-    const timeIntervalsArr = ['Day', 'Week', 'Month', 'Year', 'All Time', 'Custom'];
+
     const [title, setTitle] = useState<string>('');
     const [broadcasters, setBroadcasters] = useState<string[]>([]);
     const [clips, setClips] = useState<any[]>([]);
@@ -103,98 +122,66 @@ const ClipsDirectory = () => {
     const [openModal, setOpenModal] = useState(false);
     const [startDate, setStartDate] = useState<Moment | null>(moment().subtract(1, 'month'));
     const [endDate, setEndDate] = useState<Moment | null>(moment());
-
+    const previousDates = useRef({ startDate, endDate });
     const [timeInterval, setTimeInterval] = useState('Month');
     const navigate = useNavigate();
 
-    const getClips = () => {
+    const getClipsFromService = () => {
         if (broadcasters.length) {
-            const params: { [k: string]: any } = {
-                broadcaster_id: broadcasters.map((id: string) => `"${id}"`).join(','),
-                first: 100,
-            };
-
-            if (startDate && endDate) {
-                params.started_at = startDate.toISOString();
-                params.ended_at = endDate.toISOString();
-            }
-
-            fetch('/graphql', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    query: `
-            {
-                clips(broadcasterIds: [${params.broadcaster_id}], startedAt: "${params.started_at}", endedAt: "${params.ended_at}")
-            }
-            `,
-                }),
-            })
-                .then((res) => res.json())
-                .then(
-                    (result) => {
-                        setClips(JSON.parse(result.data.clips));
-                    },
-                    // Note: it's important to handle errors here
-                    // instead of a catch() block so that we don't swallow
-                    // exceptions from actual bugs in components.
-                    (error) => {
-                        console.log(error);
-                    },
-                );
+            getClips(broadcasters, startDate, endDate).then((result) => {
+                setClips(result);
+            });
         }
     };
 
     const handleintervalChange = (e: any) => {
-        const timeIntervals = {
-            Day: 'Day',
-            Week: 'Week',
-            Month: 'Month',
-            Year: 'Year',
-            All: 'All Time',
-            Custom: 'Custom',
-        };
         setTimeInterval(e.target.value);
 
         switch (e.target.value) {
-            case timeIntervals.Day:
+            case TimeInterval.Day:
                 setStartDate(moment().subtract(1, 'day'));
                 setEndDate(moment());
 
                 break;
-            case timeIntervals.Week:
+            case TimeInterval.Week:
                 setStartDate(moment().subtract(1, 'week'));
                 setEndDate(moment());
 
                 break;
-            case timeIntervals.Month:
+            case TimeInterval.Month:
                 setStartDate(moment().subtract(1, 'month'));
                 setEndDate(moment());
 
                 break;
-            case timeIntervals.Year:
+            case TimeInterval.Year:
                 setStartDate(moment().subtract(1, 'year'));
                 setEndDate(moment());
 
                 break;
-            case timeIntervals.All:
+            case TimeInterval.All:
                 setStartDate(null);
                 setEndDate(null);
 
                 break;
-            case timeIntervals.Custom:
-                setStartDate(null);
-                setEndDate(null);
-
-                break;
-
             default:
                 break;
         }
+        setTimeInterval(e.target.value);
     };
 
     useEffect(() => {
-        getClips();
+        if (
+            (timeInterval !== TimeInterval.Custom && previousDates.current.startDate !== startDate) ||
+            (timeInterval == TimeInterval.Custom &&
+                (previousDates.current.startDate !== startDate || previousDates.current.endDate !== endDate))
+        ) {
+            getClipsFromService();
+            previousDates.current = { startDate, endDate };
+        }
+    });
+
+    useEffect(() => {
+        getClipsFromService();
     }, [broadcasters]);
 
     useEffect(() => {
@@ -242,17 +229,18 @@ const ClipsDirectory = () => {
                 <Title title={title}>{title}</Title>
                 {broadcasters.length > 0 && (
                     <Controls>
-                        <InputLabel id="label">Top</InputLabel>
+                        <TopLabel id="label">Top</TopLabel>
                         <Select
                             labelId="label"
                             id="select"
-                            onChange={(e) => handleintervalChange(e)}
+                            onChange={(event) => handleintervalChange(event)}
+                            size="small"
                             defaultValue={timeInterval}
                         >
-                            {timeIntervalsArr.map((v) => {
+                            {Object.values(TimeInterval).map((intervals) => {
                                 return (
-                                    <MenuItem key={v} value={v}>
-                                        {v}
+                                    <MenuItem key={intervals} value={intervals}>
+                                        {intervals}
                                     </MenuItem>
                                 );
                             })}
@@ -265,7 +253,7 @@ const ClipsDirectory = () => {
                                     onChange={(newValue) => {
                                         setStartDate(newValue);
                                     }}
-                                    renderInput={(params) => <TextField {...params} />}
+                                    renderInput={(params) => <DateTextField {...params} size="small" />}
                                 />
                                 <DatePicker
                                     label="End date"
@@ -274,7 +262,7 @@ const ClipsDirectory = () => {
                                         const endOfDay = newValue?.endOf('day');
                                         setEndDate(endOfDay ?? null);
                                     }}
-                                    renderInput={(params) => <TextField {...params} />}
+                                    renderInput={(params) => <DateTextField {...params} size="small" />}
                                 />
                             </LocalizationProvider>
                         )}
@@ -292,9 +280,8 @@ const ClipsDirectory = () => {
                                             setClipIndex(index);
                                             setOpenModal(true);
                                         }}
-                                        // onClick={() => navigate.push('clip', { clips: clips, currentClip: clip, index: index })}
                                     >
-                                        <img src={clip?.thumbnail_url}></img>
+                                        <img width="300px" src={clip?.thumbnail_url}></img>
                                         <Duration>
                                             {moment
                                                 .duration(Math.round(clip?.duration), 'seconds')
@@ -310,7 +297,7 @@ const ClipsDirectory = () => {
                     </div>
                     <Modal open={openModal} onClose={handleModalClose}>
                         <ModalContainer>
-                            <Clip clip={clips[clipIndex]} autoPlay={autoPlay} setAutoPlay={setAutoPlay} />
+                            {clips && <Clip clip={clips[clipIndex]} autoPlay={autoPlay} setAutoPlay={setAutoPlay} />}
                         </ModalContainer>
                     </Modal>
                 </>
