@@ -42,9 +42,11 @@ const Groups = () => {
     const isInitialMount = useRef(true);
 
     useEffect(() => {
-        const tempGroups = localStorage.getItem(`${currentUser.id}-groups`);
+        const tempGroups = localStorage.getItem(`${currentUser?.id ?? 'default'}-groups`);
         if (tempGroups) {
             setGroups(JSON.parse(tempGroups));
+        } else {
+            setGroups({});
         }
     }, [currentUser]);
 
@@ -52,7 +54,7 @@ const Groups = () => {
         if (isInitialMount.current) {
             isInitialMount.current = false;
         } else {
-            localStorage.setItem(`${currentUser.id}-groups`, JSON.stringify(groups));
+            localStorage.setItem(`${currentUser?.id ?? 'default'}-groups`, JSON.stringify(groups));
         }
     }, [groups]);
 

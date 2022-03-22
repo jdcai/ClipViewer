@@ -1,5 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { AppBar, Toolbar, Typography, Button, IconButton, Autocomplete, TextField, alpha } from '@mui/material';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+    AppBar,
+    Toolbar,
+    Typography,
+    Button,
+    IconButton,
+    Autocomplete,
+    TextField,
+    MenuItem,
+    ClickAwayListener,
+    Grow,
+    MenuList,
+    Paper,
+    Popper,
+} from '@mui/material';
 import axios from 'axios';
 import styled from 'styled-components';
 import useUserStore from '../stores/UserStore';
@@ -54,41 +68,75 @@ const CustomTextField = styled(TextField)`
 const Header = () => {
     const setCurrentUser = useUserStore((state) => state.setCurrentUser);
     const currentUser: any = useUserStore((state) => state.currentUser);
-    const userFollows: any = useUserStore((state) => state.userFollows);
+    const userFollows: any[] = useUserStore((state) => state.userFollows);
+
     const setUserFollows = useUserStore((state) => state.setUserFollows);
     const [showDrawer, setShowDrawer] = useState(false);
     const [hasUserError, setHasUserError] = useState(false);
+    const [open, setOpen] = React.useState(false);
+    const anchorRef = React.useRef<HTMLButtonElement>(null);
     const navigate = useNavigate();
+    // return focus to the button when we transitioned from !open -> open
+    const prevOpen = useRef(open);
 
     useEffect(() => {
-        axios
-            .get('/currentUser')
-            .then((result) => {
-                setCurrentUser(result.data);
-                if (!userFollows) {
-                    getUserFollows().then((follows) => {
-                        setUserFollows(follows);
-                    });
-                }
+        if (prevOpen.current === true && open === false) {
+            anchorRef.current!.focus();
+        }
 
-                //Add a login here if current user is not existant?
-                console.log('success', result);
-            })
-            // Note: it's important to handle errors here
-            // instead of a catch() block so that we don't swallow
-            // exceptions from actual bugs in components.
-            .catch((error) => {
-                if (error.response && error.response.status === 401) {
-                    console.log(error);
+        prevOpen.current = open;
+    }, [open]);
+
+    useEffect(() => {
+        const getLoggedInUserAndFollows = async () => {
+            try {
+                const result = await axios.get('/currentUser');
+
+                const user = result?.data;
+                if (user?.id) {
+                    setCurrentUser(user);
                 }
-            });
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        getLoggedInUserAndFollows();
     }, []);
+
+    useEffect(() => {
+        const getFollows = async () => {
+            try {
+                const result = await getUserFollows(currentUser.id);
+                setUserFollows(JSON.parse(result?.data?.data?.follows) ?? []);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        if (currentUser && currentUser.id && !userFollows.length) {
+            getFollows();
+        } else if (!currentUser) {
+            setUserFollows([]);
+        }
+    }, [currentUser]);
 
     const login = () => {
         //todo add uuid state to url https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#oauth-authorization-code-flow
         window.location.replace(
             'https://id.twitch.tv/oauth2/authorize?client_id=4ii276qiixepu2v4uoazmgzaf060r3&redirect_uri=http://localhost:3000/oauth/callback&response_type=code',
         );
+    };
+
+    const logout = async () => {
+        try {
+            await axios.post('/revoke', {
+                method: 'POST',
+            });
+            setCurrentUser(null);
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     const goToBroadcaster = async (value: any) => {
@@ -98,23 +146,52 @@ const Header = () => {
         }
 
         if (typeof value === 'string') {
-            const users = await getUsers([value]);
+            try {
+                const result = await getUsers([value]);
+                console.log(result);
+                const users = JSON.parse(result?.data?.data?.users);
 
-            if (users?.length) {
-                navigate('clips', {
-                    replace: true,
-                    state: { title: users[0].display_name, broadcasters: [users[0].id] },
-                });
-            } else {
-                setHasUserError(true);
+                if (users?.length) {
+                    setHasUserError(false);
+                    navigate('clips', {
+                        replace: true,
+                        state: { title: users[0].display_name, broadcasters: [users[0].id] },
+                    });
+                } else {
+                    setHasUserError(true);
+                }
+            } catch (error) {
+                console.error(error);
             }
         } else {
+            setHasUserError(false);
             navigate('clips', {
                 replace: true,
                 state: { title: value.to_name, broadcasters: [value.to_id] },
             });
         }
     };
+
+    const handleToggle = () => {
+        setOpen((prevOpen) => !prevOpen);
+    };
+
+    const handleClose = (event: Event | React.SyntheticEvent) => {
+        if (anchorRef.current && anchorRef.current.contains(event.target as HTMLElement)) {
+            return;
+        }
+
+        setOpen(false);
+    };
+
+    function handleListKeyDown(event: React.KeyboardEvent) {
+        if (event.key === 'Tab') {
+            event.preventDefault();
+            setOpen(false);
+        } else if (event.key === 'Escape') {
+            setOpen(false);
+        }
+    }
 
     return (
         <>
@@ -145,6 +222,7 @@ const Header = () => {
                                     const valueUser = typeof value === 'string' ? value : value.to_login;
                                     return option?.to_login === valueUser?.toLowerCase();
                                 }}
+                                openOnFocus
                                 renderInput={(params: any) => (
                                     <CustomTextField
                                         {...params}
@@ -160,7 +238,56 @@ const Header = () => {
                     </Center>
                     <End>
                         {currentUser ? (
-                            <Typography variant="h6">{currentUser?.display_name}</Typography>
+                            <>
+                                <Button
+                                    ref={anchorRef}
+                                    id="composition-button"
+                                    aria-controls={open ? 'composition-menu' : undefined}
+                                    aria-expanded={open ? 'true' : undefined}
+                                    aria-haspopup="true"
+                                    onClick={handleToggle}
+                                >
+                                    {currentUser?.display_name}
+                                </Button>
+                                <Popper
+                                    open={open}
+                                    anchorEl={anchorRef.current}
+                                    role={undefined}
+                                    placement="bottom-start"
+                                    transition
+                                    disablePortal
+                                >
+                                    {({ TransitionProps, placement }) => (
+                                        <Grow
+                                            {...TransitionProps}
+                                            style={{
+                                                transformOrigin:
+                                                    placement === 'bottom-start' ? 'left top' : 'left bottom',
+                                            }}
+                                        >
+                                            <Paper>
+                                                <ClickAwayListener onClickAway={handleClose}>
+                                                    <MenuList
+                                                        autoFocusItem={open}
+                                                        id="composition-menu"
+                                                        aria-labelledby="composition-button"
+                                                        onKeyDown={handleListKeyDown}
+                                                    >
+                                                        <MenuItem
+                                                            onClick={(event) => {
+                                                                logout();
+                                                                handleClose(event);
+                                                            }}
+                                                        >
+                                                            Logout
+                                                        </MenuItem>
+                                                    </MenuList>
+                                                </ClickAwayListener>
+                                            </Paper>
+                                        </Grow>
+                                    )}
+                                </Popper>
+                            </>
                         ) : (
                             <Button color="inherit" onClick={() => login()}>
                                 Login

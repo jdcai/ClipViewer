@@ -9,29 +9,49 @@ import requests
 import operator
 
 def refresh_token():
+    if session['refresh_token'] is not None:
+        payload = {
+            'client_id': os.getenv('CLIENT_ID'),
+            'client_secret': os.getenv('CLIENT_SECRET'),
+            'refresh_token':  urllib.parse.quote_plus(session['refresh_token']),
+            'grant_type':'refresh_token',
+        }
+        url = 'https://id.twitch.tv/oauth2/token'
+        r = requests.post(url, params=payload)
+        session['token'] = r.json()["access_token"]
+        session['refresh_token'] = r.json()["refresh_token"]
+        print('Token refreshed')
+        if r.status_code == 200:
+            return True
+        else: 
+            return False
+    else:
+       return get_app_token()
+    
+def get_app_token():
     payload = {
         'client_id': os.getenv('CLIENT_ID'),
         'client_secret': os.getenv('CLIENT_SECRET'),
-        'refresh_token':  urllib.parse.quote_plus(session['refresh_token']),
-        'grant_type':'refresh_token',
+        'grant_type':'client_credentials'
     }
     url = 'https://id.twitch.tv/oauth2/token'
     r = requests.post(url, params=payload)
-    session['token'] = r.json()["access_token"]
-    session['refresh_token'] = r.json()["refresh_token"]
+    
     print('Token refreshed')
-    print(r.json())
+    if r.status_code == 200:
+        session['token'] = r.json()["access_token"]
+        return True
+    else: 
+        return False
 
 def get_follows(user_id):
-    client = twitch.TwitchHelix(client_id=os.getenv('CLIENT_ID'), oauth_token=session['token'])
-    if user_id:
-        cursor = client.get_user_follows(page_size=100,from_id=(user_id))
-    else:
-        cursor = client.get_user_follows(page_size=100,from_id=(session.get('currentUser')['id']))
-    follows = cursor._queue
-    while follows.__len__() != cursor.total:
-        follows.extend(cursor.next_page())
-    return json.dumps(follows)
+        client = twitch.TwitchHelix(client_id=os.getenv('CLIENT_ID'), oauth_token=session['token'])
+        if user_id:
+            cursor = client.get_user_follows(page_size=100,from_id=(user_id))
+        follows = cursor._queue
+        while follows.__len__() != cursor.total:
+            follows.extend(cursor.next_page())
+        return json.dumps(follows)
 
 def get_clips(broadcaster_ids, started_at, ended_at):
     clips = []
@@ -61,23 +81,32 @@ class Query(ObjectType):
     # Argument (name) for the Field and returns data for the query Response
     def resolve_follows(root, info, user_id):
         try:    
-            return get_follows(user_id)
+            if session.get("refresh_token"):
+                return get_follows(user_id)
         except requests.exceptions.HTTPError:
-            refresh_token()
-            return get_follows(user_id)
+            try:
+                if refresh_token():
+                    return get_follows(user_id)
+            except requests.exceptions.HTTPError as e:   
+                print(e.response.content)
 
     def resolve_clips(root, info, broadcaster_ids, started_at=None, ended_at=None):
         try:
             return get_clips(broadcaster_ids, started_at, ended_at)
         except requests.exceptions.HTTPError:
-            refresh_token()
-            return get_clips(broadcaster_ids, started_at, ended_at)
+            try:
+                if refresh_token():
+                    return get_clips(broadcaster_ids, started_at, ended_at)
+            except requests.exceptions.HTTPError as e:   
+                print(e.response.content)
         
     def resolve_users(root, info, login_names):
         try:    
             return get_users(login_names)
         except requests.exceptions.HTTPError:
-            refresh_token()
-            return get_users(login_names)
-    
+            try:
+                if refresh_token():
+                    return get_users(login_names)
+            except requests.exceptions.HTTPError as e:   
+                print(e.response.content)
 schema = Schema(query=Query)

@@ -80,10 +80,9 @@ const Group = (props: {
     setGroups: Dispatch<SetStateAction<GroupContainer>>;
 }) => {
     const { id, isNew, group, groups, setGroups } = props;
-    const userFollows: any = useUserStore((state) => state.userFollows);
+    const userFollows: any[] = useUserStore((state) => state.userFollows);
     const setUserFollows = useUserStore((state) => state.setUserFollows);
-
-    // const [selectedUser, setSelectedUser] = useState<any>();
+    const currentUser: any = useUserStore((state) => state.currentUser);
     const [isEditingGroup, setIsEditingGroup] = useState(isNew);
     const [isAddingUser, setIsAddingUser] = useState(false);
     const [groupName, setGroupName] = useState(group.name);
@@ -92,12 +91,19 @@ const Group = (props: {
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (!userFollows) {
-            getUserFollows().then((result) => {
-                setUserFollows(result);
-            });
+        const getFollows = async () => {
+            try {
+                const result = await getUserFollows(currentUser.id);
+                setUserFollows(JSON.parse(result?.data?.data?.follows ?? []));
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        if (currentUser && currentUser.id && !userFollows.length) {
+            getFollows();
         }
-    }, []);
+    }, [currentUser]);
 
     const resetEditing = () => {
         setIsEditingGroup(false);
@@ -149,13 +155,17 @@ const Group = (props: {
         }
 
         if (typeof value === 'string') {
-            const users = await getUsers([value]);
-
-            if (users?.length) {
-                addUser({ to_name: users[0].display_name, to_id: users[0].id });
-                setHasUserError(false);
-            } else {
-                setHasUserError(true);
+            try {
+                const result = await getUsers([value]);
+                const users = JSON.parse(result?.data?.data?.users);
+                if (users?.length) {
+                    addUser({ to_name: users[0].display_name, to_id: users[0].id });
+                    setHasUserError(false);
+                } else {
+                    setHasUserError(true);
+                }
+            } catch (error) {
+                console.error(error);
             }
         } else {
             addUser(value);
