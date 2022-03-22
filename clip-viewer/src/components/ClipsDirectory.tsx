@@ -28,6 +28,7 @@ const ClipTitle = styled.div`
     min-height: 24px;
 `;
 const Title = styled.h1`
+    min-height: 48px;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;

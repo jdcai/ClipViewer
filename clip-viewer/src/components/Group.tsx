@@ -8,16 +8,17 @@ import {
     ListItemButton,
     ListItemText,
     ListItem,
+    createFilterOptions,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 import ClearIcon from '@mui/icons-material/Clear';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { ExpandLess, ExpandMore, OpenInNew } from '@mui/icons-material';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import useUserStore from '../stores/UserStore';
 import { getUserFollows, getUsers } from '../services/UserService';
-import { ExpandLess, ExpandMore, OpenInNew } from '@mui/icons-material';
 
 const GroupComponentContainer = styled.div`
     margin-bottom: 8px;
@@ -88,6 +89,7 @@ const Group = (props: {
     const [groupName, setGroupName] = useState(group.name);
     const [hasUserError, setHasUserError] = useState(false);
     const [expanded, setExpanded] = useState(true);
+    const filter = createFilterOptions<any>();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -288,6 +290,20 @@ const Group = (props: {
                             isOptionEqualToValue={(option: any, value: any) => {
                                 const valueUser = typeof value === 'string' ? value : value.to_login;
                                 return option?.to_login === valueUser?.toLowerCase();
+                            }}
+                            filterOptions={(options: any, params: any) => {
+                                const filtered = filter(options, params);
+
+                                const { inputValue } = params;
+
+                                // Suggest the creation of a new value
+                                const isExisting = options.some((option: any) => inputValue === option.to_name);
+
+                                if (inputValue !== '' && !isExisting) {
+                                    filtered.push(inputValue);
+                                }
+
+                                return filtered;
                             }}
                             openOnFocus
                             renderInput={(params: unknown) => (

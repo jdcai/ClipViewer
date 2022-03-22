@@ -13,17 +13,18 @@ import {
     MenuList,
     Paper,
     Popper,
+    Drawer,
+    createFilterOptions,
 } from '@mui/material';
+import { withTheme } from '@mui/styles';
+import MenuIcon from '@mui/icons-material/Menu';
 import axios from 'axios';
 import styled from 'styled-components';
-import useUserStore from '../stores/UserStore';
-import Drawer from '@mui/material/Drawer';
-import Groups from './Groups';
-import { withTheme } from '@mui/styles';
-import { drawerWidth } from '../Constants';
-import MenuIcon from '@mui/icons-material/Menu';
-import { getUserFollows, getUsers } from '../services/UserService';
 import { useNavigate } from 'react-router';
+import useUserStore from '../stores/UserStore';
+import Groups from './Groups';
+import { drawerWidth } from '../Constants';
+import { getUserFollows, getUsers } from '../services/UserService';
 
 const ToolbarContainer = styled(Toolbar)`
     align-items: center;
@@ -69,13 +70,14 @@ const Header = () => {
     const setCurrentUser = useUserStore((state) => state.setCurrentUser);
     const currentUser: any = useUserStore((state) => state.currentUser);
     const userFollows: any[] = useUserStore((state) => state.userFollows);
-
     const setUserFollows = useUserStore((state) => state.setUserFollows);
     const [showDrawer, setShowDrawer] = useState(false);
     const [hasUserError, setHasUserError] = useState(false);
     const [open, setOpen] = React.useState(false);
     const anchorRef = React.useRef<HTMLButtonElement>(null);
     const navigate = useNavigate();
+    const filter = createFilterOptions<any>();
+
     // return focus to the button when we transitioned from !open -> open
     const prevOpen = useRef(open);
 
@@ -221,6 +223,19 @@ const Header = () => {
                                 isOptionEqualToValue={(option: any, value: any) => {
                                     const valueUser = typeof value === 'string' ? value : value.to_login;
                                     return option?.to_login === valueUser?.toLowerCase();
+                                }}
+                                filterOptions={(options: any, params: any) => {
+                                    const filtered = filter(options, params);
+
+                                    const { inputValue } = params;
+
+                                    const isExisting = options.some((option: any) => inputValue === option.to_name);
+
+                                    if (inputValue !== '' && !isExisting) {
+                                        filtered.push(inputValue);
+                                    }
+
+                                    return filtered;
                                 }}
                                 openOnFocus
                                 renderInput={(params: any) => (
