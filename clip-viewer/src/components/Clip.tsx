@@ -21,7 +21,13 @@ const Clip = (props: { clip: any; autoPlay: boolean; setAutoPlay: React.Dispatch
             {clip && (
                 <ClipContainer>
                     <iframe
-                        src={'https://clips.twitch.tv/embed?clip=' + clip.id + '&parent=localhost&autoplay=true'}
+                        src={
+                            'https://clips.twitch.tv/embed?clip=' +
+                            clip.id +
+                            '&parent=' +
+                            window.location.hostname +
+                            '&autoplay=true'
+                        }
                         height="100%"
                         width="100%"
                         title="test"
