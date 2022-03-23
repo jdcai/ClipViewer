@@ -1,8 +1,7 @@
 import os
 from typing import Dict
 import requests
-from api import user
-from flask import Flask, session, jsonify, request,send_from_directory
+from flask import Flask, request, send_from_directory
 import twitch
 import urllib.parse
 from flask_graphql import GraphQLView

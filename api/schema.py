@@ -1,5 +1,5 @@
 from typing import Any
-from graphene import ObjectType, String, Schema, JSONString, List, Int
+from graphene import ObjectType, String, Schema, List
 import twitch
 import json
 import os
