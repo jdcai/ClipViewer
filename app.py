@@ -115,6 +115,7 @@ def revoke():
         r = requests.post(url, params=payload)
         if r.status_code == 200:
             logout_user()
+            return r.text
         return r.json()
 
 
