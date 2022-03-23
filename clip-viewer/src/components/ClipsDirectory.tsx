@@ -79,6 +79,10 @@ const TopLabel = styled(InputLabel)`
 const DateTextField = styled(TextField)`
     width: 160px;
 `;
+const ClipThumbnail = styled.img`
+    width: 300px;
+`;
+
 const ModalContainer = styled.div`
     position: absolute;
     top: 50%;
@@ -282,7 +286,7 @@ const ClipsDirectory = () => {
                                             setOpenModal(true);
                                         }}
                                     >
-                                        <img width="300px" src={clip?.thumbnail_url}></img>
+                                        <ClipThumbnail src={clip?.thumbnail_url}></ClipThumbnail>
                                         <Duration>
                                             {moment
                                                 .duration(Math.round(clip?.duration), 'seconds')
