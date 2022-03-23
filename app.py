@@ -115,7 +115,6 @@ def revoke():
         r = requests.post(url, params=payload)
         if r.status_code == 200:
             logout_user()
-            return r.text
         return r.json()
 
 
@@ -155,7 +154,7 @@ def authorize():
     if r.status_code != 200:
         if refresh_token():
             call_authorize()
-    return get_current_user()
+    return r.json()
 
 
 def call_get_current_user():
