@@ -1,11 +1,13 @@
-from operator import truediv
 import os
+from typing import Dict
 import requests
+from api import user
 from flask import Flask, session, jsonify, request,send_from_directory
 import twitch
 import urllib.parse
 from flask_graphql import GraphQLView
 from api.schema import schema
+from flask_login import LoginManager, UserMixin, AnonymousUserMixin, login_user, logout_user, current_user
 
 app = Flask(__name__,static_folder='clip-viewer/build',static_url_path='')
 app.secret_key = os.getenv('FLASK_SECRET_KEY'),
@@ -17,19 +19,48 @@ app.add_url_rule(
         graphiql= os.getenv("GRAPHIQL") == "True" # for having the GraphiQL interface
     )
 )
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+users: Dict[str, "User"] = {}
+
+class User(UserMixin):
+    def __init__(self, id: str, token: str, refresh_token: str, username:str):
+        self.id = id
+        self.token = token
+        self.refresh_token = refresh_token
+        self.username = username
+        
+    def get(user_id:str):
+        return users.get(user_id)
+
+    def __str__(self) -> str:
+        return f"<Id: {self.id}, Username: {self.username}, Email: {self.token} ,re: {self.refresh_token}>"
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+class AnonymousUser(AnonymousUserMixin):
+        token = ""
+
+login_manager.anonymous_user = AnonymousUser
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get(user_id)
 
 def refresh_token():
-    if session['refresh_token'] is not None:
+    if current_user.is_authenticated:
         payload = {
             'client_id': os.getenv('CLIENT_ID'),
             'client_secret': os.getenv('CLIENT_SECRET'),
-            'refresh_token':  urllib.parse.quote_plus(session['refresh_token']),
+            'refresh_token':  urllib.parse.quote_plus(current_user.refresh_token),
             'grant_type':'refresh_token',
         }
         url = 'https://id.twitch.tv/oauth2/token'
         r = requests.post(url, params=payload)
-        session['token'] = r.json()["access_token"]
-        session['refresh_token'] = r.json()["refresh_token"]
+        current_user.token = r.json()["access_token"]
+        current_user.refresh_token = r.json()["refresh_token"]
         print('Token refreshed')
         if r.status_code == 200:
             return True
@@ -48,7 +79,7 @@ def get_app_token():
     r = requests.post(url, params=payload)
     print('Token refreshed')
     if r.status_code == 200:
-        session['token'] = r.json()["access_token"]
+        current_user.token = r.json()["access_token"]
         return True
     else: 
         return False
@@ -64,18 +95,18 @@ def get_app_token():
 
 @app.post('/revoke')
 def revoke():
-    payload = {
-        'client_id': os.getenv('CLIENT_ID'),
-        'token': session['token']
-    }
-    url = 'https://id.twitch.tv/oauth2/revoke'
-    
-    r = requests.post(url, params=payload)
-    if r.status_code==200:
-        session["token"] = None
-        session['refresh_token'] = None
-        return r.text
-    return r.json()
+    if current_user.is_authenticated:
+        payload = {
+            'client_id': os.getenv('CLIENT_ID'),
+            'token': current_user.token
+        }
+        url = 'https://id.twitch.tv/oauth2/revoke'
+        
+        r = requests.post(url, params=payload)
+        if r.status_code==200:
+            logout_user()
+            return r.text
+        return r.json()
 
 def call_authorize():
     payload = {
@@ -83,15 +114,23 @@ def call_authorize():
         'client_secret': os.getenv('CLIENT_SECRET'),
         'code': request.json['code'],
         'grant_type':'authorization_code',
-        'redirect_uri':'http://localhost:3000/oauth/callback'
+        'redirect_uri': os.getenv('REDIRECT_URI')
     }
     url = 'https://id.twitch.tv/oauth2/token'
     r = requests.post(url, params=payload)
     if r.status_code == 200:
-        session['token'] = r.json()["access_token"]
-        session['refresh_token'] = r.json()["refresh_token"]
+        client = twitch.TwitchHelix(client_id=os.getenv('CLIENT_ID'), oauth_token=r.json()["access_token"])
+        client_users = client.get_users()
+        user = client_users[0]
+              
+        loggedin_user = User(id=user.id,
+                    token=r.json()["access_token"],
+                    refresh_token=r.json()["refresh_token"],
+                    username=user.display_name)
+        users[user.id] = loggedin_user
+        login_user(loggedin_user)
+        print(current_user)
     return r
-
 
 #for app access
 @app.post('/authorize')
@@ -103,8 +142,8 @@ def authorize():
     return get_current_user()
 
 def call_get_current_user():
-    if(session.get('refresh_token') is not None):
-        client = twitch.TwitchHelix(client_id=os.getenv('CLIENT_ID'), oauth_token=session['token'])
+    if(current_user.is_authenticated):
+        client = twitch.TwitchHelix(client_id=os.getenv('CLIENT_ID'), oauth_token=current_user.token)
         user = client.get_users()
         return user[0]
     return ('', 204)

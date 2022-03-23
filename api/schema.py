@@ -3,23 +3,24 @@ from graphene import ObjectType, String, Schema, JSONString, List, Int
 import twitch
 import json
 import os
-from flask import session, jsonify, json
+from flask import json
 import urllib.parse
 import requests
 import operator
+from flask_login import current_user
 
 def refresh_token():
-    if session['refresh_token'] is not None:
+    if current_user.is_authenticated:
         payload = {
             'client_id': os.getenv('CLIENT_ID'),
             'client_secret': os.getenv('CLIENT_SECRET'),
-            'refresh_token':  urllib.parse.quote_plus(session['refresh_token']),
+            'refresh_token':  urllib.parse.quote_plus(current_user.refresh_token),
             'grant_type':'refresh_token',
         }
         url = 'https://id.twitch.tv/oauth2/token'
         r = requests.post(url, params=payload)
-        session['token'] = r.json()["access_token"]
-        session['refresh_token'] = r.json()["refresh_token"]
+        current_user.token = r.json()["access_token"]
+        current_user.refresh_token = r.json()["refresh_token"]
         print('Token refreshed')
         if r.status_code == 200:
             return True
@@ -36,16 +37,15 @@ def get_app_token():
     }
     url = 'https://id.twitch.tv/oauth2/token'
     r = requests.post(url, params=payload)
-    
     print('Token refreshed')
     if r.status_code == 200:
-        session['token'] = r.json()["access_token"]
+        current_user.token = r.json()["access_token"]
         return True
     else: 
         return False
 
 def get_follows(user_id):
-        client = twitch.TwitchHelix(client_id=os.getenv('CLIENT_ID'), oauth_token=session['token'])
+        client = twitch.TwitchHelix(client_id=os.getenv('CLIENT_ID'), oauth_token=current_user.token)
         if user_id:
             cursor = client.get_user_follows(page_size=100,from_id=(user_id))
         follows = cursor._queue
@@ -56,7 +56,7 @@ def get_follows(user_id):
 def get_clips(broadcaster_ids, started_at, ended_at):
     clips = []
     if len(broadcaster_ids)!=0:
-        client = twitch.TwitchHelix(client_id=os.getenv('CLIENT_ID'), oauth_token=session['token'])
+        client = twitch.TwitchHelix(client_id=os.getenv('CLIENT_ID'), oauth_token=current_user.token)
         for broadcaster_id in broadcaster_ids:
             # clips.append()
             cursor = client.get_clips(page_size=100,broadcaster_id=broadcaster_id,started_at=started_at,ended_at=ended_at)
@@ -68,7 +68,7 @@ def get_clips(broadcaster_ids, started_at, ended_at):
 
 def get_users(login_names):
     if len(login_names)!=0:
-        client = twitch.TwitchHelix(client_id=os.getenv('CLIENT_ID'), oauth_token=session['token'])         
+        client = twitch.TwitchHelix(client_id=os.getenv('CLIENT_ID'), oauth_token=current_user.token)         
         channel = client.get_users(login_names=login_names)
     return json.dumps(channel)
 
@@ -81,7 +81,7 @@ class Query(ObjectType):
     # Argument (name) for the Field and returns data for the query Response
     def resolve_follows(root, info, user_id):
         try:    
-            if session.get("refresh_token"):
+            if current_user.is_authenticated:
                 return get_follows(user_id)
         except requests.exceptions.HTTPError:
             try:
