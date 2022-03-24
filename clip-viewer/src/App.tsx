@@ -8,7 +8,6 @@ import styled from 'styled-components';
 import ClipsDirectory from './components/ClipsDirectory';
 import Groups from './components/Groups';
 import Header from './components/Header';
-import Authorize from './components/Authroize';
 import { drawerWidth } from './Constants';
 
 const Container = styled.div`
@@ -36,7 +35,6 @@ const App = () => {
             <Container showDrawer={showDrawer}>
                 <Routes>
                     <Route path="/" element={<ClipsDirectory />} />
-                    <Route path="/oauth/callback" element={<Authorize />} />
                 </Routes>
             </Container>
         </Router>

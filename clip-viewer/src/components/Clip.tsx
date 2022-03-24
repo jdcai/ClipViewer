@@ -51,7 +51,7 @@ const Clip = (props: {
                         id="if"
                     ></iframe>
                     <ClipInfoContainer>
-                        <FormControlLabel
+                        {/* <FormControlLabel
                             control={
                                 <Switch
                                     checked={autoPlay}
@@ -60,7 +60,7 @@ const Clip = (props: {
                                 />
                             }
                             label="Autoplay"
-                        />
+                        /> */}
                         <CloseModalButton aria-label="Close" title="Close" onClick={handleModalClose}>
                             <CloseIcon />
                         </CloseModalButton>
