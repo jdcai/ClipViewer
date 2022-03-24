@@ -61,7 +61,7 @@ const Groups = () => {
     const createGroup = () => {
         const id = uuidv4();
         setIsEditing({ ...isNew, [id]: true });
-        setGroups({ ...groups, [id]: { name: '', users: [] } });
+        setGroups({ ...groups, [id]: { name: 'New group', users: [] } });
     };
 
     return (

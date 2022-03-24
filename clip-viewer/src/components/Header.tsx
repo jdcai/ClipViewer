@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
 import {
     AppBar,
     Toolbar,
@@ -22,8 +22,7 @@ import axios from 'axios';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router';
 import useUserStore from '../stores/UserStore';
-import Groups from './Groups';
-import { drawerWidth } from '../Constants';
+
 import { getUserFollows, getUsers } from '../services/UserService';
 
 const ToolbarContainer = styled(Toolbar)`
@@ -49,12 +48,6 @@ const AppBarContainer = styled(withTheme(AppBar))`
     z-index: ${(props) => props.theme.zIndex.drawer + 1};
 `;
 
-const DrawerContainer = styled(Drawer)`
-    & .MuiDrawer-paper {
-        width: ${drawerWidth}px;
-        box-sizing: border-box;
-    }
-`;
 const IconButtonContainer = styled(withTheme(IconButton))`
     margin-right: ${(props) => props.theme.spacing(2)};
 `;
@@ -66,12 +59,12 @@ const CustomTextField = styled(TextField)`
     }
 `;
 
-const Header = () => {
+const Header = (props: { showDrawer: boolean; setShowDrawer: Dispatch<SetStateAction<boolean>> }) => {
+    const { showDrawer, setShowDrawer } = props;
     const setCurrentUser = useUserStore((state) => state.setCurrentUser);
     const currentUser: any = useUserStore((state) => state.currentUser);
     const userFollows: any[] = useUserStore((state) => state.userFollows);
     const setUserFollows = useUserStore((state) => state.setUserFollows);
-    const [showDrawer, setShowDrawer] = useState(false);
     const [hasUserError, setHasUserError] = useState(false);
     const [isLoadingUser, setIsLoadingUser] = useState(false);
     const [open, setOpen] = React.useState(false);
@@ -158,7 +151,7 @@ const Header = () => {
 
                 if (users?.length) {
                     setHasUserError(false);
-                    navigate('clips', {
+                    navigate('/', {
                         replace: true,
                         state: { title: users[0].display_name, broadcasters: [users[0].id] },
                     });
@@ -170,7 +163,7 @@ const Header = () => {
             }
         } else {
             setHasUserError(false);
-            navigate('clips', {
+            navigate('/', {
                 replace: true,
                 state: { title: value.to_name, broadcasters: [value.to_id] },
             });
@@ -314,10 +307,6 @@ const Header = () => {
                     </End>
                 </ToolbarContainer>
             </AppBarContainer>
-            <DrawerContainer variant="persistent" hideBackdrop={true} anchor={'left'} open={showDrawer}>
-                <Toolbar />
-                <Groups />
-            </DrawerContainer>
         </>
     );
 };

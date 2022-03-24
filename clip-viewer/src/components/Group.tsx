@@ -175,7 +175,7 @@ const Group = (props: {
                                         onClick={(event: any) => {
                                             event.stopPropagation();
 
-                                            navigate('clips', {
+                                            navigate('/', {
                                                 replace: true,
                                                 state: {
                                                     title: groupName,
@@ -233,7 +233,7 @@ const Group = (props: {
                                 <ListItem key={user.id} disablePadding>
                                     <IndentedListItemButton
                                         onClick={() =>
-                                            navigate('clips', {
+                                            navigate('/', {
                                                 replace: true,
                                                 state: { title: user.name, broadcasters: [user.id] },
                                             })
@@ -243,6 +243,7 @@ const Group = (props: {
                                     </IndentedListItemButton>
                                     {isEditingGroup && (
                                         <IconButton
+                                            size="small"
                                             aria-label="Remove user"
                                             title="Remove user"
                                             onClick={() => removeUser(user.id)}
