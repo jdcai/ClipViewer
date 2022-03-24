@@ -41,12 +41,6 @@ class User(UserMixin):
     def get(user_id: str):
         return users.get(user_id)
 
-    def __str__(self) -> str:
-        return f"<Id: {self.id}, Username: {self.username}, Email: {self.token} ,re: {self.refresh_token}>"
-
-    def __repr__(self) -> str:
-        return self.__str__()
-
 
 class AnonymousUser(AnonymousUserMixin):
     token = ""
@@ -144,7 +138,7 @@ def call_authorize():
         )
         users[user.id] = loggedin_user
         login_user(loggedin_user)
-        print(current_user)
+        # print(current_user)
     return r
 
 
@@ -155,7 +149,7 @@ def authorize():
     if r.status_code != 200:
         if refresh_token():
             call_authorize()
-    return r.json()
+    return "success"
 
 
 def call_get_current_user():
