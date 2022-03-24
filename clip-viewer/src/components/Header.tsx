@@ -73,6 +73,7 @@ const Header = () => {
     const setUserFollows = useUserStore((state) => state.setUserFollows);
     const [showDrawer, setShowDrawer] = useState(false);
     const [hasUserError, setHasUserError] = useState(false);
+    const [isLoadingUser, setIsLoadingUser] = useState(false);
     const [open, setOpen] = React.useState(false);
     const anchorRef = React.useRef<HTMLButtonElement>(null);
     const navigate = useNavigate();
@@ -91,6 +92,7 @@ const Header = () => {
 
     useEffect(() => {
         const getLoggedInUserAndFollows = async () => {
+            setIsLoadingUser(true);
             try {
                 const result = await axios.get('/currentUser');
 
@@ -101,6 +103,7 @@ const Header = () => {
             } catch (error) {
                 console.error(error);
             }
+            setIsLoadingUser(false);
         };
 
         getLoggedInUserAndFollows();
@@ -252,7 +255,7 @@ const Header = () => {
                         </AutocompleteContainer>
                     </Center>
                     <End>
-                        {currentUser ? (
+                        {currentUser && !isLoadingUser ? (
                             <>
                                 <Button
                                     ref={anchorRef}
@@ -303,11 +306,11 @@ const Header = () => {
                                     )}
                                 </Popper>
                             </>
-                        ) : (
+                        ) : !isLoadingUser ? (
                             <Button color="inherit" onClick={() => login()}>
                                 Login
                             </Button>
-                        )}
+                        ) : null}
                     </End>
                 </ToolbarContainer>
             </AppBarContainer>
