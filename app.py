@@ -1,7 +1,7 @@
 import os
 from typing import Dict
 import requests
-from flask import Flask, request, send_from_directory
+from flask import Flask, request, send_from_directory, jsonify
 import twitch
 import urllib.parse
 from flask_graphql import GraphQLView
@@ -152,26 +152,12 @@ def authorize():
     return "success"
 
 
-def call_get_current_user():
-    if current_user.is_authenticated:
-        client = twitch.TwitchHelix(
-            client_id=os.getenv("CLIENT_ID"), oauth_token=current_user.token
-        )
-        user = client.get_users()
-        return user[0]
-    return ("", 204)
-
-
 @app.route("/currentUser")
 def get_current_user():
-    try:
-        return call_get_current_user()
-    except requests.exceptions.HTTPError as e:
-        try:
-            if refresh_token():
-                return call_get_current_user()
-        except requests.exceptions.HTTPError as e:
-            print(e.response.content)
+    if current_user.is_authenticated:
+        return jsonify(display_name=current_user.username, id=current_user.id)
+    else:
+        return ("", 204)
 
 
 @app.route("/")
