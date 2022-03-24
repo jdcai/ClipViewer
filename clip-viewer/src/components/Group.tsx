@@ -18,7 +18,7 @@ import { ExpandLess, ExpandMore, OpenInNew } from '@mui/icons-material';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import useUserStore from '../stores/UserStore';
-import { getUserFollows, getUsers } from '../services/UserService';
+import { getUsers } from '../services/UserService';
 
 const GroupComponentContainer = styled.div`
     margin-bottom: 8px;
@@ -91,21 +91,6 @@ const Group = (props: {
     const [expanded, setExpanded] = useState(true);
     const filter = createFilterOptions<any>();
     const navigate = useNavigate();
-
-    useEffect(() => {
-        const getFollows = async () => {
-            try {
-                const result = await getUserFollows(currentUser.id);
-                setUserFollows(JSON.parse(result?.data?.data?.follows ?? []));
-            } catch (error) {
-                console.error(error);
-            }
-        };
-
-        if (currentUser && currentUser.id && !userFollows.length) {
-            getFollows();
-        }
-    }, [currentUser]);
 
     const resetEditing = () => {
         setIsEditingGroup(false);
