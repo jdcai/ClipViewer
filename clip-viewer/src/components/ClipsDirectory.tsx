@@ -301,9 +301,18 @@ const ClipsDirectory = () => {
                             ))}
                     </div>
                     <Modal open={openModal} onClose={handleModalClose}>
-                        <ModalContainer>
-                            {clips && <Clip clip={clips[clipIndex]} autoPlay={autoPlay} setAutoPlay={setAutoPlay} />}
-                        </ModalContainer>
+                        <>
+                            <ModalContainer>
+                                {clips && (
+                                    <Clip
+                                        clip={clips[clipIndex]}
+                                        autoPlay={autoPlay}
+                                        setAutoPlay={setAutoPlay}
+                                        handleModalClose={handleModalClose}
+                                    />
+                                )}
+                            </ModalContainer>
+                        </>
                     </Modal>
                 </>
             )}

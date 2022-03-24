@@ -1,7 +1,8 @@
 import React from 'react';
-import { Switch, FormControlLabel } from '@mui/material';
+import { Switch, FormControlLabel, IconButton } from '@mui/material';
 import styled from 'styled-components';
-import { useLocation } from 'react-router-dom';
+import moment from 'moment';
+import CloseIcon from '@mui/icons-material/Close';
 
 const ClipContainer = styled.div`
     display: flex;
@@ -10,11 +11,23 @@ const ClipContainer = styled.div`
 `;
 
 const ClipInfoContainer = styled.div`
-    padding: 16px;
+    padding: 1rem;
+    width: 24rem;
 `;
 
-const Clip = (props: { clip: any; autoPlay: boolean; setAutoPlay: React.Dispatch<React.SetStateAction<boolean>> }) => {
-    const { clip, autoPlay, setAutoPlay } = props;
+const CloseModalButton = styled(IconButton)`
+    position: absolute;
+    top: 0;
+    right: 0;
+`;
+
+const Clip = (props: {
+    clip: any;
+    autoPlay: boolean;
+    setAutoPlay: React.Dispatch<React.SetStateAction<boolean>>;
+    handleModalClose: () => void;
+}) => {
+    const { clip, autoPlay, setAutoPlay, handleModalClose } = props;
 
     return (
         <>
@@ -47,11 +60,12 @@ const Clip = (props: { clip: any; autoPlay: boolean; setAutoPlay: React.Dispatch
                             }
                             label="Autoplay"
                         />
-
-                        <h1>{clip.duration * 1000 + 5000}</h1>
-                        <h1>{clip?.title}</h1>
-                        <div>Views: {clip?.view_count}</div>
-                        <div>Created: {clip?.created_at}</div>
+                        <CloseModalButton aria-label="Close" title="Close" onClick={handleModalClose}>
+                            <CloseIcon />
+                        </CloseModalButton>
+                        <h2>{clip?.title}</h2>
+                        <div>{clip?.view_count} views</div>
+                        <div>Clipped {moment(clip?.created_at).fromNow()}</div>
                     </ClipInfoContainer>
                 </ClipContainer>
             )}
