@@ -1,12 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Button, TextField, Select, InputLabel, MenuItem, Modal } from '@mui/material/';
+import { TextField, Select, InputLabel, MenuItem, Modal, CircularProgress } from '@mui/material/';
 import styled from 'styled-components';
 import DateAdapter from '@mui/lab/AdapterMoment';
 import { DatePicker, LocalizationProvider } from '@mui/lab';
 import 'moment-duration-format';
 import moment, { Moment } from 'moment';
 import { useNavigate, useLocation, Location } from 'react-router-dom';
-import axios from 'axios';
 
 import Clip from './Clip';
 import { getClips } from '../services/ClipService';
@@ -79,8 +78,17 @@ const TopLabel = styled(InputLabel)`
 const DateTextField = styled(TextField)`
     width: 160px;
 `;
+
 const ClipThumbnail = styled.img`
     width: 300px;
+`;
+
+const LoadingContainer = styled.div`
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
 `;
 
 const ModalContainer = styled.div`
@@ -124,6 +132,7 @@ const ClipsDirectory = () => {
     const [clips, setClips] = useState<any[]>([]);
     const [clipIndex, setClipIndex] = useState(0);
     const [autoPlay, setAutoPlay] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [openModal, setOpenModal] = useState(false);
     const [startDate, setStartDate] = useState<Moment | null>(moment().subtract(1, 'month'));
     const [endDate, setEndDate] = useState<Moment | null>(moment());
@@ -131,12 +140,18 @@ const ClipsDirectory = () => {
     const [timeInterval, setTimeInterval] = useState('Month');
     const navigate = useNavigate();
 
-    const getClipsFromService = () => {
+    const getClipsFromService = async () => {
         if (broadcasters.length) {
-            getClips(broadcasters, startDate, endDate).then((result) => {
-                setClips(result);
-            });
+            try {
+                setIsLoading(true);
+                const result = await getClips(broadcasters, startDate, endDate);
+
+                setClips(JSON.parse(result?.data?.data?.clips) ?? []);
+            } catch (error) {
+                console.error(error);
+            }
         }
+        setIsLoading(false);
     };
 
     const handleintervalChange = (e: any) => {
@@ -190,8 +205,8 @@ const ClipsDirectory = () => {
     }, [broadcasters]);
 
     useEffect(() => {
-        setTitle(locationState?.title);
         setBroadcasters(locationState?.broadcasters ?? []);
+        setTitle(locationState?.title);
     }, [locationState]);
 
     const handleKey = (e: KeyboardEvent) => {
@@ -274,7 +289,12 @@ const ClipsDirectory = () => {
                     </Controls>
                 )}
             </TopContainer>
-            {broadcasters.length > 0 && (
+            {isLoading && (
+                <LoadingContainer>
+                    <CircularProgress size={60} />
+                </LoadingContainer>
+            )}
+            {!isLoading && broadcasters.length > 0 && (
                 <>
                     <div>
                         {clips &&
