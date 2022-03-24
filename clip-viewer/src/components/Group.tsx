@@ -258,11 +258,9 @@ const Group = (props: {
                 </Collapse>
 
                 {isEditingGroup && !isAddingUser && (
-                    <ListItem>
-                        <IconButton aria-label="Add user" title="Add user" onClick={() => setIsAddingUser(true)}>
+                    <IndentedListItemButton aria-label="Add user" title="Add user" onClick={() => setIsAddingUser(true)}>
                             <AddIcon />
-                        </IconButton>
-                    </ListItem>
+                    </IndentedListItemButton>
                 )}
                 {isEditingGroup && isAddingUser && (
                     <IndentedListItem>
@@ -296,6 +294,7 @@ const Group = (props: {
                                 <CustomTextField
                                     {...params}
                                     label="Username"
+                                    autoFocus
                                     variant="outlined"
                                     size="small"
                                     error={hasUserError}
@@ -303,9 +302,7 @@ const Group = (props: {
                                 />
                             )}
                         />
-                        {/* <IconButton aria-label="Add user" title="Add user" onClick={() => addUser(selectedUser)}>
-                            <AddIcon />
-                        </IconButton> */}
+
                     </IndentedListItem>
                 )}
             </GroupComponentContainer>
