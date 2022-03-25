@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { TextField, Select, InputLabel, MenuItem, Modal, CircularProgress } from '@mui/material/';
+import { TextField, Select, InputLabel, MenuItem, Modal, CircularProgress, IconButton } from '@mui/material/';
 import styled from 'styled-components';
 import DateAdapter from '@mui/lab/AdapterMoment';
 import { DatePicker, LocalizationProvider } from '@mui/lab';
 import 'moment-duration-format';
 import moment, { Moment } from 'moment';
 import { useNavigate, useLocation, Location } from 'react-router-dom';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 
 import Clip from './Clip';
 import { getClips } from '../services/ClipService';
@@ -98,14 +100,22 @@ const ModalContainer = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #121212;
-    border: 2px solid #000;
     width: 90%;
     max-width: 90%;
     transform: translate(-50%, -50%);
     height: 80%;
     max-height: 80%;
     outline: 0;
+`;
+
+const ModalNavigationLeftButton = styled(IconButton)`
+    position: absolute;
+    top: 50%;
+`;
+const ModalNavigationRightButton = styled(IconButton)`
+    position: absolute;
+    top: 50%;
+    right: 0;
 `;
 
 enum TimeInterval {
@@ -134,10 +144,10 @@ const ClipsDirectory = () => {
     const [autoPlay, setAutoPlay] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [openModal, setOpenModal] = useState(false);
-    const [startDate, setStartDate] = useState<Moment | null>(moment().subtract(1, 'month'));
+    const [startDate, setStartDate] = useState<Moment | null>(moment().subtract(1, 'week'));
     const [endDate, setEndDate] = useState<Moment | null>(moment());
     const previousDates = useRef({ startDate, endDate });
-    const [timeInterval, setTimeInterval] = useState('Month');
+    const [timeInterval, setTimeInterval] = useState(TimeInterval.Week);
     const navigate = useNavigate();
 
     const getClipsFromService = async () => {
@@ -211,13 +221,20 @@ const ClipsDirectory = () => {
 
     const handleKey = (e: KeyboardEvent) => {
         if (e.code === 'ArrowRight') {
-            if (clipIndex < clips.length - 1) {
-                setClipIndex((clipIndex) => clipIndex + 1);
-            }
+            nextClip();
         } else if (e.code === 'ArrowLeft') {
-            if (clipIndex > 0) {
-                setClipIndex((clipIndex) => clipIndex - 1);
-            }
+            previousClip();
+        }
+    };
+
+    const nextClip = () => {
+        if (clipIndex < clips.length - 1) {
+            setClipIndex((clipIndex) => clipIndex + 1);
+        }
+    };
+    const previousClip = () => {
+        if (clipIndex > 0) {
+            setClipIndex((clipIndex) => clipIndex - 1);
         }
     };
 
@@ -322,6 +339,16 @@ const ClipsDirectory = () => {
                     </div>
                     <Modal open={openModal} onClose={handleModalClose}>
                         <>
+                            {clipIndex > 0 && (
+                                <ModalNavigationLeftButton
+                                    size="large"
+                                    aria-label="Previous clip"
+                                    title="Previous clip"
+                                    onClick={previousClip}
+                                >
+                                    <ArrowBackIosNewIcon />
+                                </ModalNavigationLeftButton>
+                            )}
                             <ModalContainer>
                                 {clips && (
                                     <Clip
@@ -332,6 +359,16 @@ const ClipsDirectory = () => {
                                     />
                                 )}
                             </ModalContainer>
+                            {clipIndex < clips.length - 1 && (
+                                <ModalNavigationRightButton
+                                    size="large"
+                                    aria-label="Next clip"
+                                    title="Next clip"
+                                    onClick={nextClip}
+                                >
+                                    <ArrowForwardIosIcon />
+                                </ModalNavigationRightButton>
+                            )}
                         </>
                     </Modal>
                 </>
