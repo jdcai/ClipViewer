@@ -126,6 +126,12 @@ enum TimeInterval {
     All = 'All Time',
     Custom = 'Custom',
 }
+
+enum Sort {
+    Top = 'Top',
+    TopEach = 'Top each',
+}
+
 interface LocationState {
     title: string;
     broadcasters: string[];
@@ -142,6 +148,7 @@ const ClipsDirectory = () => {
     const [clips, setClips] = useState<any[]>([]);
     const [clipIndex, setClipIndex] = useState(0);
     const [autoPlay, setAutoPlay] = useState(false);
+    const [sort, setSort] = useState(Sort.Top);
     const [isLoading, setIsLoading] = useState(false);
     const [openModal, setOpenModal] = useState(false);
     const [startDate, setStartDate] = useState<Moment | null>(moment().subtract(1, 'week'));
@@ -154,7 +161,12 @@ const ClipsDirectory = () => {
         if (broadcasters.length) {
             try {
                 setIsLoading(true);
-                const result = await getClips(broadcasters, startDate, endDate);
+                const result = await getClips(
+                    broadcasters,
+                    startDate,
+                    endDate,
+                    sort === Sort.TopEach && broadcasters.length > 1,
+                );
 
                 setClips(JSON.parse(result?.data?.data?.clips) ?? []);
             } catch (error) {
@@ -165,8 +177,6 @@ const ClipsDirectory = () => {
     };
 
     const handleintervalChange = (e: any) => {
-        setTimeInterval(e.target.value);
-
         switch (e.target.value) {
             case TimeInterval.Day:
                 setStartDate(moment().subtract(1, 'day'));
@@ -199,6 +209,10 @@ const ClipsDirectory = () => {
         setTimeInterval(e.target.value);
     };
 
+    const handleSortChange = (event: any) => {
+        setSort(event.target.value);
+    };
+
     useEffect(() => {
         if (
             (timeInterval !== TimeInterval.Custom && previousDates.current.startDate !== startDate) ||
@@ -212,7 +226,7 @@ const ClipsDirectory = () => {
 
     useEffect(() => {
         getClipsFromService();
-    }, [broadcasters]);
+    }, [broadcasters, sort]);
 
     useEffect(() => {
         setBroadcasters(locationState?.broadcasters ?? []);
@@ -266,7 +280,19 @@ const ClipsDirectory = () => {
                 <Title title={title}>{title}</Title>
                 {broadcasters.length > 0 && (
                     <Controls>
-                        <TopLabel id="label">Top</TopLabel>
+                        {broadcasters.length > 1 ? (
+                            <Select onChange={(event) => handleSortChange(event)} size="small" defaultValue={sort}>
+                                {Object.values(Sort).map((sort) => {
+                                    return (
+                                        <MenuItem key={sort} value={sort}>
+                                            {sort}
+                                        </MenuItem>
+                                    );
+                                })}
+                            </Select>
+                        ) : (
+                            <TopLabel id="label">Top</TopLabel>
+                        )}
                         <Select
                             labelId="label"
                             id="select"

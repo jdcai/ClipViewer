@@ -1,5 +1,5 @@
 from typing import Any
-from graphene import ObjectType, String, Schema, List
+from graphene import ObjectType, String, Schema, List, Boolean
 import twitch
 import json
 import os
@@ -8,6 +8,7 @@ import urllib.parse
 import requests
 import operator
 from flask_login import current_user
+from itertools import cycle, islice
 
 
 def refresh_token():
@@ -58,24 +59,47 @@ def get_follows(user_id):
         follows.extend(cursor.next_page())
     return json.dumps(follows)
 
+def roundrobin(*iterables):
+    "roundrobin('ABC', 'D', 'EF') --> A D E B F C"
+    # Recipe credited to George Sakkis
+    num_active = len(iterables)
+    nexts = cycle(iter(it).__next__ for it in iterables)
+    while num_active:
+        try:
+            for next in nexts:
+                yield next()
+        except StopIteration:
+            # Remove the iterator we just exhausted from the cycle.
+            num_active -= 1
+            nexts = cycle(islice(nexts, num_active))
 
-def get_clips(broadcaster_ids, started_at, ended_at):
+def get_clips(broadcaster_ids, started_at, ended_at, top_each):
     clips = []
     if len(broadcaster_ids) != 0:
         client = twitch.TwitchHelix(
             client_id=os.getenv("CLIENT_ID"), oauth_token=current_user.token
         )
         for broadcaster_id in broadcaster_ids:
-            # clips.append()
-            cursor = client.get_clips(
-                page_size=100,
-                broadcaster_id=broadcaster_id,
-                started_at=started_at,
-                ended_at=ended_at,
-            )
-            # clips.append(cursor._queue)
-            clips += cursor._queue
-        clips.sort(key=operator.attrgetter("view_count"), reverse=True)
+            if top_each:
+                cursor = client.get_clips(
+                    page_size=100,
+                    broadcaster_id=broadcaster_id,
+                    started_at=started_at,
+                    ended_at=ended_at,
+                )
+                clips.append(cursor._queue)
+            else:
+                cursor = client.get_clips(
+                    page_size=100,
+                    broadcaster_id=broadcaster_id,
+                    started_at=started_at,
+                    ended_at=ended_at,
+                )
+                clips += cursor._queue
+        if top_each:
+            clips = list(roundrobin(*clips))
+        else:
+            clips.sort(key=operator.attrgetter("view_count"), reverse=True)
 
     return json.dumps(clips)
 
@@ -90,7 +114,7 @@ def get_users(login_names):
 
 
 class Query(ObjectType):
-    clips = String(broadcaster_ids=List(String), started_at=String(), ended_at=String())
+    clips = String(broadcaster_ids=List(String), started_at=String(), ended_at=String(), top_each=Boolean())
     follows = String(user_id=String())
     users = String(login_names=List(String))
 
@@ -107,13 +131,14 @@ class Query(ObjectType):
             except requests.exceptions.HTTPError as e:
                 print(e.response.content)
 
-    def resolve_clips(root, info, broadcaster_ids, started_at=None, ended_at=None):
+    def resolve_clips(root, info, broadcaster_ids, started_at=None, ended_at=None, top_each=False):
         try:
-            return get_clips(broadcaster_ids, started_at, ended_at)
-        except requests.exceptions.HTTPError:
+            return get_clips(broadcaster_ids, started_at, ended_at, top_each)
+        except requests.exceptions.HTTPError as e:
+            print(e.response.content)
             try:
                 if refresh_token():
-                    return get_clips(broadcaster_ids, started_at, ended_at)
+                    return get_clips(broadcaster_ids, started_at, ended_at, top_each)
             except requests.exceptions.HTTPError as e:
                 print(e.response.content)
 

@@ -1,17 +1,22 @@
 import axios from 'axios';
 import { Moment } from 'moment';
 
-export const getClips = async (broadcasters: string[], started_at: Moment | null, ended_at: Moment | null) => {
+export const getClips = async (
+    broadcasters: string[],
+    startedAt: Moment | null,
+    endedAt: Moment | null,
+    topEach: boolean,
+) => {
     const broadcastersString = broadcasters.map((id: string) => `"${id}"`).join(',');
     let query = `
     {
         clips(broadcasterIds: [${broadcastersString}])
     }
     `;
-    if (started_at && ended_at) {
+    if (startedAt && endedAt) {
         query = `
         {
-            clips(broadcasterIds: [${broadcastersString}], startedAt: "${started_at.toISOString()}", endedAt: "${ended_at.toISOString()}")
+            clips(broadcasterIds: [${broadcastersString}], startedAt: "${startedAt.toISOString()}", endedAt: "${endedAt.toISOString()}", topEach: ${topEach})
         }
         `;
     }
