@@ -116,7 +116,7 @@ class Query(ObjectType):
         except requests.exceptions.HTTPError as e:
             print(e.response.content)
             try:
-                if refresh_token():
+                if get_app_token():
                     return get_clips(broadcaster_ids, started_at, ended_at, top_each)
             except requests.exceptions.HTTPError as e:
                 print(e.response.content)
