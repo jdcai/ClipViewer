@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import useUserStore from '../stores/UserStore';
 import Group from './Group';
 import { v4 as uuidv4 } from 'uuid';
+import { GroupContainer } from '../types/GroupTypes';
 
 const CustomListItemButton = styled.div`
     margin-top: auto;
@@ -14,20 +15,6 @@ const CustomListItemButton = styled.div`
 const ListContainer = styled.div`
     overflow-y: auto;
 `;
-
-interface FollowingUser {
-    name: string;
-    id: string;
-}
-
-interface GroupType {
-    name: string;
-    users: FollowingUser[];
-}
-
-interface GroupContainer {
-    [key: string]: GroupType;
-}
 
 interface EditingStates {
     [key: string]: boolean;
@@ -61,7 +48,7 @@ const Groups = () => {
     const createGroup = () => {
         const id = uuidv4();
         setIsEditing({ ...isNew, [id]: true });
-        setGroups({ ...groups, [id]: { name: 'New group', users: [] } });
+        setGroups({ ...groups, [id]: { name: 'New group', users: [], expanded: false } });
     };
 
     return (

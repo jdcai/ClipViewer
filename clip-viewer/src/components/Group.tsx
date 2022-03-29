@@ -19,6 +19,7 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import useUserStore from '../stores/UserStore';
 import { getUsers } from '../services/UserService';
+import { GroupType, GroupContainer } from '../types/GroupTypes';
 
 const GroupComponentContainer = styled.div`
     margin-bottom: 8px;
@@ -59,19 +60,6 @@ const CustomTextField = styled(TextField)`
         top: 80%;
     }
 `;
-interface FollowingUser {
-    name: string;
-    id: string;
-}
-
-interface GroupType {
-    name: string;
-    users: FollowingUser[];
-}
-
-interface GroupContainer {
-    [key: string]: GroupType;
-}
 
 const Group = (props: {
     id: string;
@@ -82,13 +70,11 @@ const Group = (props: {
 }) => {
     const { id, isNew, group, groups, setGroups } = props;
     const userFollows: any[] = useUserStore((state) => state.userFollows);
-    const setUserFollows = useUserStore((state) => state.setUserFollows);
-    const currentUser: any = useUserStore((state) => state.currentUser);
     const [isEditingGroup, setIsEditingGroup] = useState(isNew);
     const [isAddingUser, setIsAddingUser] = useState(false);
     const [groupName, setGroupName] = useState(group.name);
     const [hasUserError, setHasUserError] = useState(false);
-    const [expanded, setExpanded] = useState(true);
+    const [expanded, setExpanded] = useState(group.expanded);
     const filter = createFilterOptions<any>();
     const navigate = useNavigate();
 
@@ -96,6 +82,16 @@ const Group = (props: {
         setIsEditingGroup(false);
         setIsAddingUser(false);
     };
+
+    useEffect(() => {
+        setGroups({
+            ...groups,
+            [id]: {
+                ...groups[id],
+                expanded: expanded,
+            },
+        });
+    }, [expanded]);
 
     const addUser = (newUser: any) => {
         if (
