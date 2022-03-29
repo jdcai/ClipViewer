@@ -264,10 +264,11 @@ const ClipsDirectory = () => {
     useEffect(() => {
         if (autoPlay) {
             clearInterval(globalf);
-
-            globalf = setInterval(() => {
-                setClipIndex((clipIndex) => clipIndex + 1);
-            }, clips[clipIndex].duration * 1000 + 5000);
+            if (clips[clipIndex]?.duration) {
+                globalf = setInterval(() => {
+                    setClipIndex((clipIndex) => clipIndex + 1);
+                }, clips[clipIndex].duration * 1000 + 5000);
+            }
         } else {
             clearInterval(globalf);
         }
