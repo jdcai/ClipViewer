@@ -165,30 +165,23 @@ const Group = (props: {
             <GroupComponentContainer>
                 {!isEditingGroup && (
                     <>
-                        <ListItemButton onClick={() => setExpanded(!expanded)}>
+                        <ListItemButton
+                            onClick={(event: any) => {
+                                event.stopPropagation();
+
+                                navigate('/', {
+                                    replace: true,
+                                    state: {
+                                        title: groupName,
+                                        broadcasters: group.users.map((user) => {
+                                            return user.id;
+                                        }),
+                                    },
+                                });
+                            }}
+                        >
                             <ListItemText primary={<GroupName title={groupName}>{groupName}</GroupName>} />
                             <Container>
-                                {group.users.length > 0 && (
-                                    <IconButton
-                                        aria-label="Get clips"
-                                        title="Get clips"
-                                        onClick={(event: any) => {
-                                            event.stopPropagation();
-
-                                            navigate('/', {
-                                                replace: true,
-                                                state: {
-                                                    title: groupName,
-                                                    broadcasters: group.users.map((user) => {
-                                                        return user.id;
-                                                    }),
-                                                },
-                                            });
-                                        }}
-                                    >
-                                        <OpenInNew fontSize="small" />
-                                    </IconButton>
-                                )}
                                 <IconButton
                                     aria-label="Edit group"
                                     title="Edit group"
@@ -199,8 +192,17 @@ const Group = (props: {
                                 >
                                     <EditIcon fontSize="small" />
                                 </IconButton>
+                                <IconButton
+                                    aria-label={expanded ? 'Collapse' : 'Expand'}
+                                    title={expanded ? 'Collapse' : 'Expand'}
+                                    onClick={(event: any) => {
+                                        event.stopPropagation();
+                                        setExpanded(!expanded);
+                                    }}
+                                >
+                                    {expanded ? <ExpandLess /> : <ExpandMore />}
+                                </IconButton>
                             </Container>
-                            {expanded ? <ExpandLess /> : <ExpandMore />}
                         </ListItemButton>
                     </>
                 )}
@@ -221,7 +223,7 @@ const Group = (props: {
                             <EditIcon fontSize="small" />
                         </IconButton>
                         <IconButton aria-label="Delete group" title="Delete group" onClick={() => deleteGroup()}>
-                            <DeleteIcon />
+                            <DeleteIcon fontSize="small" />
                         </IconButton>
                     </ListItem>
                 )}
@@ -248,7 +250,7 @@ const Group = (props: {
                                             title="Remove user"
                                             onClick={() => removeUser(user.id)}
                                         >
-                                            <ClearIcon />
+                                            <ClearIcon fontSize="small" />
                                         </IconButton>
                                     )}
                                 </ListItem>
@@ -258,8 +260,12 @@ const Group = (props: {
                 </Collapse>
 
                 {isEditingGroup && !isAddingUser && (
-                    <IndentedListItemButton aria-label="Add user" title="Add user" onClick={() => setIsAddingUser(true)}>
-                            <AddIcon />
+                    <IndentedListItemButton
+                        aria-label="Add user"
+                        title="Add user"
+                        onClick={() => setIsAddingUser(true)}
+                    >
+                        <AddIcon />
                     </IndentedListItemButton>
                 )}
                 {isEditingGroup && isAddingUser && (
@@ -302,7 +308,6 @@ const Group = (props: {
                                 />
                             )}
                         />
-
                     </IndentedListItem>
                 )}
             </GroupComponentContainer>
