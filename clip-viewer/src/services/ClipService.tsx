@@ -10,7 +10,7 @@ export const getClips = async (
     const broadcastersString = broadcasters.map((id: string) => `"${id}"`).join(',');
     let query = `
     {
-        clips(broadcasterIds: [${broadcastersString}])
+        clips(broadcasterIds: [${broadcastersString}], topEach: ${topEach})
     }
     `;
     if (startedAt && endedAt) {
