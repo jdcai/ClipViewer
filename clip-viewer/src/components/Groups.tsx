@@ -29,11 +29,16 @@ const Groups = () => {
     const isInitialMount = useRef(true);
 
     useEffect(() => {
-        const tempGroups = localStorage.getItem(`${currentUser?.id ?? 'default'}-groups`);
+        let tempGroups = localStorage.getItem(`${currentUser?.id ?? 'default'}-groups`);
         if (tempGroups) {
             setGroups(JSON.parse(tempGroups));
         } else {
-            setGroups({});
+            tempGroups = localStorage.getItem('default-groups');
+            if (tempGroups) {
+                setGroups(JSON.parse(tempGroups));
+            } else {
+                setGroups({});
+            }
         }
     }, [currentUser]);
 
