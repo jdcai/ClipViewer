@@ -33,7 +33,6 @@ const ToolbarContainer = styled(Toolbar)`
 const HeaderSection = styled.div`
     display: flex;
     align-items: center;
-    flex-grow: 1;
 `;
 
 const Start = styled(HeaderSection)``;
@@ -172,6 +171,27 @@ const Header = (props: { showDrawer: boolean; setShowDrawer: Dispatch<SetStateAc
         }
     };
 
+    const handleToggle = () => {
+        setOpen((prevOpen) => !prevOpen);
+    };
+
+    const handleClose = (event: Event | React.SyntheticEvent) => {
+        if (anchorRef.current && anchorRef.current.contains(event.target as HTMLElement)) {
+            return;
+        }
+
+        setOpen(false);
+    };
+
+    function handleListKeyDown(event: React.KeyboardEvent) {
+        if (event.key === 'Tab') {
+            event.preventDefault();
+            setOpen(false);
+        } else if (event.key === 'Escape') {
+            setOpen(false);
+        }
+    }
+
     return (
         <>
             <AppBarContainer position="fixed">
@@ -228,6 +248,64 @@ const Header = (props: { showDrawer: boolean; setShowDrawer: Dispatch<SetStateAc
                             />
                         </AutocompleteContainer>
                     </Center>
+                    <End>
+                        {currentUser && !isLoadingUser ? (
+                            <>
+                                <Button
+                                    ref={anchorRef}
+                                    id="composition-button"
+                                    aria-controls={open ? 'composition-menu' : undefined}
+                                    aria-expanded={open ? 'true' : undefined}
+                                    aria-haspopup="true"
+                                    onClick={handleToggle}
+                                >
+                                    {currentUser?.display_name}
+                                </Button>
+                                <Popper
+                                    open={open}
+                                    anchorEl={anchorRef.current}
+                                    role={undefined}
+                                    placement="bottom-start"
+                                    transition
+                                    disablePortal
+                                >
+                                    {({ TransitionProps, placement }) => (
+                                        <Grow
+                                            {...TransitionProps}
+                                            style={{
+                                                transformOrigin:
+                                                    placement === 'bottom-start' ? 'left top' : 'left bottom',
+                                            }}
+                                        >
+                                            <Paper>
+                                                <ClickAwayListener onClickAway={handleClose}>
+                                                    <MenuList
+                                                        autoFocusItem={open}
+                                                        id="composition-menu"
+                                                        aria-labelledby="composition-button"
+                                                        onKeyDown={handleListKeyDown}
+                                                    >
+                                                        <MenuItem
+                                                            onClick={(event) => {
+                                                                logout();
+                                                                handleClose(event);
+                                                            }}
+                                                        >
+                                                            Logout
+                                                        </MenuItem>
+                                                    </MenuList>
+                                                </ClickAwayListener>
+                                            </Paper>
+                                        </Grow>
+                                    )}
+                                </Popper>
+                            </>
+                        ) : !isLoadingUser ? (
+                            <Button color="inherit" onClick={() => login()}>
+                                Login
+                            </Button>
+                        ) : null}
+                    </End>
                 </ToolbarContainer>
             </AppBarContainer>
         </>

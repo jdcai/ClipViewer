@@ -9,6 +9,7 @@ import ClipsDirectory from './components/ClipsDirectory';
 import Groups from './components/Groups';
 import Header from './components/Header';
 import { drawerWidth } from './Constants';
+import Authorize from './components/Authroize';
 
 const Container = styled.div`
     margin-left: ${(props: { showDrawer: boolean }) => (props.showDrawer ? `${drawerWidth}px` : 0)};
@@ -35,6 +36,7 @@ const App = () => {
             <Container showDrawer={showDrawer}>
                 <Routes>
                     <Route path="/" element={<ClipsDirectory />} />
+                    <Route path="/oauth/callback" element={<Authorize />} />
                 </Routes>
             </Container>
         </Router>

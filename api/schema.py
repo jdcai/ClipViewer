@@ -7,23 +7,43 @@ from flask import json, session
 import urllib.parse
 import requests
 import operator
-from flask_login import current_user
 from itertools import cycle, islice
 
 
+def refresh_token():
+    if session['refresh_token'] is not None:
+        payload = {
+            'client_id': os.getenv('CLIENT_ID'),
+            'client_secret': os.getenv('CLIENT_SECRET'),
+            'refresh_token':  urllib.parse.quote_plus(session['refresh_token']),
+            'grant_type':'refresh_token',
+        }
+        url = 'https://id.twitch.tv/oauth2/token'
+        r = requests.post(url, params=payload)
+        session['token'] = r.json()["access_token"]
+        session['refresh_token'] = r.json()["refresh_token"]
+        print('Token refreshed')
+        if r.status_code == 200:
+            return True
+        else: 
+            return False
+    else:
+       return get_app_token()
+
 def get_app_token():
     payload = {
-        "client_id": os.getenv("CLIENT_ID"),
-        "client_secret": os.getenv("CLIENT_SECRET"),
-        "grant_type": "client_credentials",
+        'client_id': os.getenv('CLIENT_ID'),
+        'client_secret': os.getenv('CLIENT_SECRET'),
+        'grant_type':'client_credentials'
     }
-    url = "https://id.twitch.tv/oauth2/token"
+    url = 'https://id.twitch.tv/oauth2/token'
     r = requests.post(url, params=payload)
-    print("Token refreshed")
+
+    print('Token refreshed')
     if r.status_code == 200:
-        session["token"] = r.json()["access_token"]
+        session['token'] = r.json()["access_token"]
         return True
-    else:
+    else: 
         return False
 
 
@@ -101,7 +121,7 @@ class Query(ObjectType):
     # Argument (name) for the Field and returns data for the query Response
     def resolve_follows(root, info, user_id):
         try:
-            if current_user.is_authenticated:
+            if session.get("refresh_token"):
                 return get_follows(user_id)
         except requests.exceptions.HTTPError:
             try:
