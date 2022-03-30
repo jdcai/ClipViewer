@@ -132,6 +132,7 @@ const Header = (props: { showDrawer: boolean; setShowDrawer: Dispatch<SetStateAc
                 method: 'POST',
             });
             setCurrentUser(null);
+            navigate('/');
         } catch (error) {
             console.error(error);
         }
