@@ -15,6 +15,7 @@ import AddIcon from '@mui/icons-material/Add';
 import ClearIcon from '@mui/icons-material/Clear';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { ExpandLess, ExpandMore, OpenInNew } from '@mui/icons-material';
+import CheckIcon from '@mui/icons-material/Check';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import useUserStore from '../stores/UserStore';
@@ -215,8 +216,8 @@ const Group = (props: {
                             onBlur={(result) => saveGroupName(result.currentTarget.value)}
                             variant="outlined"
                         ></TextField>
-                        <IconButton aria-label="Stop editing" title="Stop editing" onClick={() => resetEditing()}>
-                            <EditIcon fontSize="small" />
+                        <IconButton aria-label="Finish editing" title="Finish editing" onClick={() => resetEditing()}>
+                            <CheckIcon fontSize="small" />
                         </IconButton>
                         <IconButton aria-label="Delete group" title="Delete group" onClick={() => deleteGroup()}>
                             <DeleteIcon fontSize="small" />
