@@ -2,10 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { List, ListItemButton, ListItemText, ListSubheader } from '@mui/material';
 import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
-import useUserStore from '../stores/UserStore';
+import useUserStore from '../../stores/UserStore';
 import Group from './Group';
 import { v4 as uuidv4 } from 'uuid';
-import { GroupContainer } from '../types/GroupTypes';
+import { GroupContainer } from '../../types/GroupTypes';
 
 const CustomListItemButton = styled.div`
     margin-top: auto;
@@ -42,13 +42,18 @@ const Groups = () => {
         }
     }, [currentUser]);
 
-    useEffect(() => {
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
-        } else {
-            localStorage.setItem(`${currentUser?.id ?? 'default'}-groups`, JSON.stringify(groups));
-        }
-    }, [groups]);
+    // useEffect(() => {
+    //     if (isInitialMount.current) {
+    //         isInitialMount.current = false;
+    //     } else {
+    //         localStorage.setItem(`${currentUser?.id ?? 'default'}-groups`, JSON.stringify(groups));
+    //     }
+    // }, [groups]);
+
+    const updateGroupHandler = (newGroups: GroupContainer) => {
+        localStorage.setItem(`${currentUser?.id ?? 'default'}-groups`, JSON.stringify(newGroups));
+        setGroups(newGroups);
+    };
 
     const createGroup = () => {
         const id = uuidv4();
@@ -77,7 +82,8 @@ const Groups = () => {
                                     id={groupID}
                                     group={groups[groupID]}
                                     groups={groups}
-                                    setGroups={setGroups}
+                                    onUpdateGroup={updateGroupHandler}
+                                    // setGroups={setGroups}
                                     isNew={isNew[groupID]}
                                 ></Group>
                             );

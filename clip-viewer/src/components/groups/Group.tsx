@@ -18,9 +18,9 @@ import { ExpandLess, ExpandMore, OpenInNew } from '@mui/icons-material';
 import CheckIcon from '@mui/icons-material/Check';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import useUserStore from '../stores/UserStore';
-import { getUsers } from '../services/UserService';
-import { GroupType, GroupContainer } from '../types/GroupTypes';
+import useUserStore from '../../stores/UserStore';
+import { getUsers } from '../../services/UserService';
+import { GroupType, GroupContainer } from '../../types/GroupTypes';
 
 const GroupComponentContainer = styled.div`
     margin-bottom: 8px;
@@ -67,9 +67,10 @@ const Group = (props: {
     isNew: boolean;
     group: GroupType;
     groups: GroupContainer;
-    setGroups: Dispatch<SetStateAction<GroupContainer>>;
+    // setGroups: Dispatch<SetStateAction<GroupContainer>>;
+    onUpdateGroup: (newGroups: GroupContainer) => void;
 }) => {
-    const { id, isNew, group, groups, setGroups } = props;
+    const { id, isNew, group, groups, onUpdateGroup } = props;
     const userFollows: any[] = useUserStore((state) => state.userFollows);
     const [isEditingGroup, setIsEditingGroup] = useState(isNew);
     const [isAddingUser, setIsAddingUser] = useState(false);
@@ -85,13 +86,20 @@ const Group = (props: {
     };
 
     useEffect(() => {
-        setGroups({
+        onUpdateGroup({
             ...groups,
             [id]: {
                 ...groups[id],
                 expanded: expanded,
             },
         });
+        // setGroups({
+        //     ...groups,
+        //     [id]: {
+        //         ...groups[id],
+        //         expanded: expanded,
+        //     },
+        // });
     }, [expanded]);
 
     const addUser = (newUser: any) => {
@@ -101,29 +109,45 @@ const Group = (props: {
                 return user.id === newUser.to_id;
             })
         ) {
-            setGroups({
+            onUpdateGroup({
                 ...groups,
                 [id]: {
                     ...groups[id],
                     users: [...groups[id].users, { name: newUser?.to_name, id: newUser?.to_id }],
                 },
             });
+            // setGroups({
+            //     ...groups,
+            //     [id]: {
+            //         ...groups[id],
+            //         users: [...groups[id].users, { name: newUser?.to_name, id: newUser?.to_id }],
+            //     },
+            // });
         }
         setIsAddingUser(false);
     };
 
     const saveGroupName = (name: string) => {
-        setGroups({ ...groups, [id]: { ...group, name: name } });
+        // setGroups({ ...groups, [id]: { ...group, name: name } });
+        onUpdateGroup({ ...groups, [id]: { ...group, name: name } });
     };
 
     const deleteGroup = () => {
         const { [id]: removedGroup, ...restOfTheGroups } = groups;
-        setGroups(restOfTheGroups);
+        // setGroups(restOfTheGroups);
+        onUpdateGroup(restOfTheGroups);
     };
 
     const removeUser = (userId: string) => {
         const users = group.users.filter((user) => user.id !== userId);
-        setGroups({
+        // setGroups({
+        //     ...groups,
+        //     [id]: {
+        //         ...groups[id],
+        //         users: users,
+        //     },
+        // });
+        onUpdateGroup({
             ...groups,
             [id]: {
                 ...groups[id],

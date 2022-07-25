@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { TextField, Select, InputLabel, MenuItem, Modal, CircularProgress, IconButton } from '@mui/material/';
 import styled from 'styled-components';
-import DateAdapter from '@mui/lab/AdapterMoment';
-import { DatePicker, LocalizationProvider } from '@mui/lab';
+import { AdapterMoment as DateAdapter } from '@mui/x-date-pickers/AdapterMoment';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import 'moment-duration-format';
 import moment, { Moment } from 'moment';
 import { useNavigate, useLocation, Location } from 'react-router-dom';

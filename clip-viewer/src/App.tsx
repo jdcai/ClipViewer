@@ -6,7 +6,7 @@ import Toolbar from '@mui/material/Toolbar';
 import styled from 'styled-components';
 
 import ClipsDirectory from './components/ClipsDirectory';
-import Groups from './components/Groups';
+import Groups from './components/groups/Groups';
 import Header from './components/Header';
 import Authorize from './components/Authroize';
 import { drawerWidth } from './Constants';
