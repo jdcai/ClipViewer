@@ -6,8 +6,10 @@ import useUserStore from '../../stores/UserStore';
 import Group from './Group';
 import { v4 as uuidv4 } from 'uuid';
 import { GroupContainer } from '../../types/GroupTypes';
+import EditGroup from './EditGroup';
 
 const CustomListItemButton = styled.div`
+    border-top: #ffffff 1px solid;
     margin-top: auto;
     width: 100%;
 `;
@@ -16,14 +18,10 @@ const ListContainer = styled.div`
     overflow-y: auto;
 `;
 
-interface EditingStates {
-    [key: string]: boolean;
-}
-
 const Groups = () => {
     const location = useLocation();
     const currentUser: any = useUserStore((state) => state.currentUser);
-    const [isNew, setIsEditing] = useState<EditingStates>({});
+    const [editID, setEditID] = useState<string>();
     const [groups, setGroups] = useState<GroupContainer>({});
     const navigate = useNavigate();
     const isInitialMount = useRef(true);
@@ -57,44 +55,57 @@ const Groups = () => {
 
     const createGroup = () => {
         const id = uuidv4();
-        setIsEditing({ ...isNew, [id]: true });
+        setEditID(id);
         setGroups({ ...groups, [id]: { name: 'New group', users: [], expanded: false } });
     };
 
     return (
         <>
-            <ListContainer>
-                <List
-                    component="nav"
-                    dense
-                    aria-labelledby="groups-subheader"
-                    subheader={
-                        <ListSubheader component="div" id="groups-subheader">
-                            Groups
-                        </ListSubheader>
-                    }
-                >
-                    {groups &&
-                        Object.keys(groups).map((groupID) => {
-                            return (
-                                <Group
-                                    key={groupID}
-                                    id={groupID}
-                                    group={groups[groupID]}
-                                    groups={groups}
-                                    onUpdateGroup={updateGroupHandler}
-                                    // setGroups={setGroups}
-                                    isNew={isNew[groupID]}
-                                ></Group>
-                            );
-                        })}
-                </List>
-            </ListContainer>
-            <CustomListItemButton>
-                <ListItemButton onClick={() => createGroup()}>
-                    <ListItemText>Create new group</ListItemText>
-                </ListItemButton>
-            </CustomListItemButton>
+            {editID !== undefined && (
+                <EditGroup
+                    id={editID}
+                    group={groups[editID]}
+                    groups={groups}
+                    setEditID={setEditID}
+                    onUpdateGroup={updateGroupHandler}
+                ></EditGroup>
+            )}
+            {editID === undefined && (
+                <>
+                    <ListContainer>
+                        <List
+                            component="nav"
+                            dense
+                            aria-labelledby="groups-subheader"
+                            subheader={
+                                <ListSubheader component="div" id="groups-subheader">
+                                    Groups
+                                </ListSubheader>
+                            }
+                        >
+                            {groups &&
+                                editID === undefined &&
+                                Object.keys(groups).map((groupID) => {
+                                    return (
+                                        <Group
+                                            key={groupID}
+                                            id={groupID}
+                                            group={groups[groupID]}
+                                            groups={groups}
+                                            onUpdateGroup={updateGroupHandler}
+                                            setEditID={setEditID}
+                                        ></Group>
+                                    );
+                                })}
+                        </List>
+                    </ListContainer>
+                    <CustomListItemButton>
+                        <ListItemButton onClick={() => createGroup()}>
+                            <ListItemText>Create new group</ListItemText>
+                        </ListItemButton>
+                    </CustomListItemButton>
+                </>
+            )}
         </>
     );
 };

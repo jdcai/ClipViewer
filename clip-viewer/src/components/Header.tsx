@@ -15,6 +15,7 @@ import {
     Popper,
     Drawer,
     createFilterOptions,
+    AutocompleteRenderInputParams,
 } from '@mui/material';
 import { withTheme } from '@mui/styles';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -212,7 +213,7 @@ const Header = (props: { showDrawer: boolean; setShowDrawer: Dispatch<SetStateAc
                         <AutocompleteContainer>
                             <Autocomplete
                                 freeSolo
-                                id="combo-box-demo"
+                                id="user-search"
                                 options={userFollows ?? []}
                                 getOptionLabel={(option: any) => option.to_name ?? option}
                                 style={{ width: 355 }}
@@ -235,7 +236,7 @@ const Header = (props: { showDrawer: boolean; setShowDrawer: Dispatch<SetStateAc
                                     return filtered;
                                 }}
                                 openOnFocus
-                                renderInput={(params: any) => (
+                                renderInput={(params: AutocompleteRenderInputParams) => (
                                     <CustomTextField
                                         {...params}
                                         error={hasUserError}
