@@ -12,10 +12,12 @@ import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import Clip from './Clip';
 import { getClips } from '../services/ClipService';
 
+const Container = styled.div`
+    padding: 0 20px;
+`;
+
 const ClipContainer = styled.div`
-    margin: 0.5rem;
     display: inline-block;
-    width: 300px;
 `;
 
 const ClipImageContainer = styled.div`
@@ -27,6 +29,7 @@ const ClipTitle = styled.div`
     white-space: nowrap;
     overflow: hidden;
     min-height: 24px;
+    font-weight: 600;
 `;
 const Title = styled.h1`
     min-height: 48px;
@@ -60,11 +63,17 @@ const CreatedDate = styled(ClipInfo)`
     bottom: 0;
     right: 0;
 `;
+
 const TopContainer = styled.div`
-    padding: 0 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+`;
+
+const ClipsContainer = styled.div`
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-gap: 1rem;
 `;
 
 const Controls = styled.div`
@@ -82,7 +91,7 @@ const DateTextField = styled(TextField)`
 `;
 
 const ClipThumbnail = styled.img`
-    width: 300px;
+    width: 100%;
 `;
 
 const LoadingContainer = styled.div`
@@ -276,7 +285,7 @@ const ClipsDirectory = () => {
     }, [clipIndex, autoPlay]);
 
     return (
-        <div>
+        <Container>
             <TopContainer>
                 <Title title={title}>{title}</Title>
                 {broadcasters.length > 0 && (
@@ -340,7 +349,7 @@ const ClipsDirectory = () => {
             )}
             {!isLoading && broadcasters.length > 0 && (
                 <>
-                    <div>
+                    <ClipsContainer>
                         {clips &&
                             clips.map((clip, index) => (
                                 <ClipContainer key={clip.id}>
@@ -350,7 +359,7 @@ const ClipsDirectory = () => {
                                             setOpenModal(true);
                                         }}
                                     >
-                                        <ClipThumbnail src={clip?.thumbnail_url}></ClipThumbnail>
+                                        <ClipThumbnail src={clip?.thumbnail_url} alt={clip?.title}></ClipThumbnail>
                                         <Duration>
                                             {moment
                                                 .duration(Math.round(clip?.duration), 'seconds')
@@ -363,7 +372,7 @@ const ClipsDirectory = () => {
                                     <ClipBroadcaster>{clip?.broadcaster_name}</ClipBroadcaster>
                                 </ClipContainer>
                             ))}
-                    </div>
+                    </ClipsContainer>
                     <Modal open={openModal} onClose={handleModalClose}>
                         <>
                             {clipIndex > 0 && (
@@ -400,7 +409,7 @@ const ClipsDirectory = () => {
                     </Modal>
                 </>
             )}
-        </div>
+        </Container>
     );
 };
 
