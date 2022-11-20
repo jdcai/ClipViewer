@@ -44,11 +44,11 @@ const Clip = (props: {
                         }
                         height="100%"
                         width="100%"
-                        title="test"
+                        title={clip?.title}
                         frameBorder="0"
                         scrolling="no"
                         allowFullScreen={true}
-                        id="if"
+                        id={clip?.id}
                     ></iframe>
                     <ClipInfoContainer>
                         <FormControlLabel

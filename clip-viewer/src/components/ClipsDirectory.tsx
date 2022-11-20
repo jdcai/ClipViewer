@@ -12,7 +12,7 @@ import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import Clip from './Clip';
 import { getClips } from '../services/ClipService';
 
-const Container = styled.div`
+const Container = styled.section`
     padding: 0 20px;
 `;
 
@@ -287,59 +287,61 @@ const ClipsDirectory = () => {
     return (
         <Container>
             <TopContainer>
-                <Title title={title}>{title}</Title>
                 {broadcasters.length > 0 && (
-                    <Controls>
-                        {broadcasters.length > 1 ? (
-                            <Select onChange={(event) => handleSortChange(event)} size="small" defaultValue={sort}>
-                                {Object.values(Sort).map((sort) => {
+                    <>
+                        <Title title={title}>{title}</Title>
+                        <Controls>
+                            {broadcasters.length > 1 ? (
+                                <Select onChange={(event) => handleSortChange(event)} size="small" defaultValue={sort}>
+                                    {Object.values(Sort).map((sort) => {
+                                        return (
+                                            <MenuItem key={sort} value={sort}>
+                                                {sort}
+                                            </MenuItem>
+                                        );
+                                    })}
+                                </Select>
+                            ) : (
+                                <TopLabel id="label">Top</TopLabel>
+                            )}
+                            <Select
+                                labelId="label"
+                                id="select"
+                                onChange={(event) => handleintervalChange(event)}
+                                size="small"
+                                defaultValue={timeInterval}
+                            >
+                                {Object.values(TimeInterval).map((intervals) => {
                                     return (
-                                        <MenuItem key={sort} value={sort}>
-                                            {sort}
+                                        <MenuItem key={intervals} value={intervals}>
+                                            {intervals}
                                         </MenuItem>
                                     );
                                 })}
                             </Select>
-                        ) : (
-                            <TopLabel id="label">Top</TopLabel>
-                        )}
-                        <Select
-                            labelId="label"
-                            id="select"
-                            onChange={(event) => handleintervalChange(event)}
-                            size="small"
-                            defaultValue={timeInterval}
-                        >
-                            {Object.values(TimeInterval).map((intervals) => {
-                                return (
-                                    <MenuItem key={intervals} value={intervals}>
-                                        {intervals}
-                                    </MenuItem>
-                                );
-                            })}
-                        </Select>
-                        {timeInterval === 'Custom' && (
-                            <LocalizationProvider dateAdapter={DateAdapter}>
-                                <DatePicker
-                                    label="Start date"
-                                    value={startDate}
-                                    onChange={(newValue) => {
-                                        setStartDate(newValue);
-                                    }}
-                                    renderInput={(params) => <DateTextField {...params} size="small" />}
-                                />
-                                <DatePicker
-                                    label="End date"
-                                    value={endDate}
-                                    onChange={(newValue) => {
-                                        const endOfDay = newValue?.endOf('day');
-                                        setEndDate(endOfDay ?? null);
-                                    }}
-                                    renderInput={(params) => <DateTextField {...params} size="small" />}
-                                />
-                            </LocalizationProvider>
-                        )}
-                    </Controls>
+                            {timeInterval === 'Custom' && (
+                                <LocalizationProvider dateAdapter={DateAdapter}>
+                                    <DatePicker
+                                        label="Start date"
+                                        value={startDate}
+                                        onChange={(newValue) => {
+                                            setStartDate(newValue);
+                                        }}
+                                        renderInput={(params) => <DateTextField {...params} size="small" />}
+                                    />
+                                    <DatePicker
+                                        label="End date"
+                                        value={endDate}
+                                        onChange={(newValue) => {
+                                            const endOfDay = newValue?.endOf('day');
+                                            setEndDate(endOfDay ?? null);
+                                        }}
+                                        renderInput={(params) => <DateTextField {...params} size="small" />}
+                                    />
+                                </LocalizationProvider>
+                            )}
+                        </Controls>
+                    </>
                 )}
             </TopContainer>
             {isLoading && (

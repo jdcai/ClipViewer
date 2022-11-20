@@ -3,15 +3,14 @@ import {
     TextField,
     Autocomplete,
     IconButton,
-    Collapse,
     List,
     ListItemButton,
     ListItemText,
     ListItem,
     ListSubheader,
     createFilterOptions,
-    Button,
     AutocompleteRenderInputParams,
+    Divider,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import ClearIcon from '@mui/icons-material/Clear';
@@ -26,7 +25,6 @@ import { GroupType, GroupContainer } from '../../types/GroupTypes';
 const ListFooter = styled.div`
     margin-top: auto;
     width: 100%;
-    border-top: #ffffff 1px solid;
 `;
 const ConfirmDeleteLabel = styled.div`
     padding: 8px 16px 0 16px;
@@ -53,11 +51,6 @@ const NameContainer = styled.div`
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
-`;
-
-const Container = styled.div`
-    align-items: center;
-    display: flex;
 `;
 
 const IndentedListItemButton = styled(ListItemButton)`
@@ -197,7 +190,7 @@ const EditGroup = (props: {
                     }
                 ></List>
                 <GroupComponentContainer>
-                    <ListItem disablePadding>
+                    <ListItem>
                         <TextField
                             label="Group Name"
                             value={groupName}
@@ -293,6 +286,8 @@ const EditGroup = (props: {
                 </GroupComponentContainer>
             </ListContainer>
             <ListFooter>
+                <Divider />
+
                 {confirmDelete && (
                     <>
                         <ConfirmDeleteLabel>Delete this group?</ConfirmDeleteLabel>
