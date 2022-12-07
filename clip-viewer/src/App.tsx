@@ -11,7 +11,7 @@ import Header from './components/Header';
 import { drawerWidth } from './Constants';
 import Authorize from './components/Authroize';
 
-const Container = styled.div`
+const Container = styled.main`
     margin-left: ${(props: { showDrawer: boolean }) => (props.showDrawer ? `${drawerWidth}px` : 0)};
 `;
 
@@ -29,7 +29,13 @@ const App = () => {
         <Router>
             <Header showDrawer={showDrawer} setShowDrawer={setShowDrawer}></Header>
             <Toolbar />
-            <DrawerContainer variant="persistent" hideBackdrop={true} anchor={'left'} open={showDrawer}>
+            <DrawerContainer
+                role="navigation"
+                variant="persistent"
+                hideBackdrop={true}
+                anchor={'left'}
+                open={showDrawer}
+            >
                 <Toolbar />
                 <Groups />
             </DrawerContainer>

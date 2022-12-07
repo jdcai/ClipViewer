@@ -12,10 +12,12 @@ import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import Clip from './Clip';
 import { getClips } from '../services/ClipService';
 
+const Container = styled.section`
+    padding: 0 20px;
+`;
+
 const ClipContainer = styled.div`
-    margin: 0.5rem;
     display: inline-block;
-    width: 300px;
 `;
 
 const ClipImageContainer = styled.div`
@@ -27,6 +29,7 @@ const ClipTitle = styled.div`
     white-space: nowrap;
     overflow: hidden;
     min-height: 24px;
+    font-weight: 600;
 `;
 const Title = styled.h1`
     min-height: 48px;
@@ -60,11 +63,17 @@ const CreatedDate = styled(ClipInfo)`
     bottom: 0;
     right: 0;
 `;
+
 const TopContainer = styled.div`
-    padding: 0 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+`;
+
+const ClipsContainer = styled.div`
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-gap: 1rem;
 `;
 
 const Controls = styled.div`
@@ -82,7 +91,7 @@ const DateTextField = styled(TextField)`
 `;
 
 const ClipThumbnail = styled.img`
-    width: 300px;
+    width: 100%;
 `;
 
 const LoadingContainer = styled.div`
@@ -213,16 +222,27 @@ const ClipsDirectory = () => {
         setSort(event.target.value);
     };
 
+    const handleStartDateChange = (newValue: any) => {
+        setStartDate(newValue);
+    };
+
+    const handleEndDateChange = (newValue: any) => {
+        const endOfDay = newValue?.endOf('day');
+        setEndDate(endOfDay ?? null);
+    };
+
     useEffect(() => {
         if (
             (timeInterval !== TimeInterval.Custom && previousDates.current.startDate !== startDate) ||
             (timeInterval == TimeInterval.Custom &&
+                startDate &&
+                endDate &&
                 (previousDates.current.startDate !== startDate || previousDates.current.endDate !== endDate))
         ) {
             getClipsFromService();
             previousDates.current = { startDate, endDate };
         }
-    });
+    }, [startDate, endDate]);
 
     useEffect(() => {
         getClipsFromService();
@@ -276,61 +296,58 @@ const ClipsDirectory = () => {
     }, [clipIndex, autoPlay]);
 
     return (
-        <div>
+        <Container>
             <TopContainer>
-                <Title title={title}>{title}</Title>
                 {broadcasters.length > 0 && (
-                    <Controls>
-                        {broadcasters.length > 1 ? (
-                            <Select onChange={(event) => handleSortChange(event)} size="small" defaultValue={sort}>
-                                {Object.values(Sort).map((sort) => {
+                    <>
+                        <Title title={title}>{title}</Title>
+                        <Controls>
+                            {broadcasters.length > 1 ? (
+                                <Select onChange={handleSortChange} size="small" value={sort}>
+                                    {Object.values(Sort).map((sort) => {
+                                        return (
+                                            <MenuItem key={sort} value={sort}>
+                                                {sort}
+                                            </MenuItem>
+                                        );
+                                    })}
+                                </Select>
+                            ) : (
+                                <TopLabel id="label">Top</TopLabel>
+                            )}
+                            <Select
+                                labelId="label"
+                                id="select"
+                                onChange={handleintervalChange}
+                                size="small"
+                                value={timeInterval}
+                            >
+                                {Object.values(TimeInterval).map((intervals) => {
                                     return (
-                                        <MenuItem key={sort} value={sort}>
-                                            {sort}
+                                        <MenuItem key={intervals} value={intervals}>
+                                            {intervals}
                                         </MenuItem>
                                     );
                                 })}
                             </Select>
-                        ) : (
-                            <TopLabel id="label">Top</TopLabel>
-                        )}
-                        <Select
-                            labelId="label"
-                            id="select"
-                            onChange={(event) => handleintervalChange(event)}
-                            size="small"
-                            defaultValue={timeInterval}
-                        >
-                            {Object.values(TimeInterval).map((intervals) => {
-                                return (
-                                    <MenuItem key={intervals} value={intervals}>
-                                        {intervals}
-                                    </MenuItem>
-                                );
-                            })}
-                        </Select>
-                        {timeInterval === 'Custom' && (
-                            <LocalizationProvider dateAdapter={DateAdapter}>
-                                <DatePicker
-                                    label="Start date"
-                                    value={startDate}
-                                    onChange={(newValue) => {
-                                        setStartDate(newValue);
-                                    }}
-                                    renderInput={(params) => <DateTextField {...params} size="small" />}
-                                />
-                                <DatePicker
-                                    label="End date"
-                                    value={endDate}
-                                    onChange={(newValue) => {
-                                        const endOfDay = newValue?.endOf('day');
-                                        setEndDate(endOfDay ?? null);
-                                    }}
-                                    renderInput={(params) => <DateTextField {...params} size="small" />}
-                                />
-                            </LocalizationProvider>
-                        )}
-                    </Controls>
+                            {timeInterval === 'Custom' && (
+                                <LocalizationProvider dateAdapter={DateAdapter}>
+                                    <DatePicker
+                                        label="Start date"
+                                        value={startDate}
+                                        onChange={handleStartDateChange}
+                                        renderInput={(params) => <DateTextField {...params} size="small" />}
+                                    />
+                                    <DatePicker
+                                        label="End date"
+                                        value={endDate}
+                                        onChange={handleEndDateChange}
+                                        renderInput={(params) => <DateTextField {...params} size="small" />}
+                                    />
+                                </LocalizationProvider>
+                            )}
+                        </Controls>
+                    </>
                 )}
             </TopContainer>
             {isLoading && (
@@ -340,7 +357,7 @@ const ClipsDirectory = () => {
             )}
             {!isLoading && broadcasters.length > 0 && (
                 <>
-                    <div>
+                    <ClipsContainer>
                         {clips &&
                             clips.map((clip, index) => (
                                 <ClipContainer key={clip.id}>
@@ -350,7 +367,7 @@ const ClipsDirectory = () => {
                                             setOpenModal(true);
                                         }}
                                     >
-                                        <ClipThumbnail src={clip?.thumbnail_url}></ClipThumbnail>
+                                        <ClipThumbnail src={clip?.thumbnail_url} alt={clip?.title}></ClipThumbnail>
                                         <Duration>
                                             {moment
                                                 .duration(Math.round(clip?.duration), 'seconds')
@@ -363,7 +380,7 @@ const ClipsDirectory = () => {
                                     <ClipBroadcaster>{clip?.broadcaster_name}</ClipBroadcaster>
                                 </ClipContainer>
                             ))}
-                    </div>
+                    </ClipsContainer>
                     <Modal open={openModal} onClose={handleModalClose}>
                         <>
                             {clipIndex > 0 && (
@@ -400,7 +417,7 @@ const ClipsDirectory = () => {
                     </Modal>
                 </>
             )}
-        </div>
+        </Container>
     );
 };
 

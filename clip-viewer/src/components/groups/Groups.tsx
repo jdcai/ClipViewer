@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { List, ListItemButton, ListItemText, ListSubheader } from '@mui/material';
+import { List, ListItemButton, ListItemText, ListSubheader, Divider } from '@mui/material';
 import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useUserStore from '../../stores/UserStore';
@@ -9,7 +9,6 @@ import { GroupContainer } from '../../types/GroupTypes';
 import EditGroup from './EditGroup';
 
 const CustomListItemButton = styled.div`
-    border-top: #ffffff 1px solid;
     margin-top: auto;
     width: 100%;
 `;
@@ -100,6 +99,7 @@ const Groups = () => {
                         </List>
                     </ListContainer>
                     <CustomListItemButton>
+                        <Divider />
                         <ListItemButton onClick={() => createGroup()}>
                             <ListItemText>Create new group</ListItemText>
                         </ListItemButton>
