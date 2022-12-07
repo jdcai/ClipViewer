@@ -47,15 +47,15 @@ const Group = (props: {
     const [expanded, setExpanded] = useState(group.expanded);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        onUpdateGroup({
-            ...groups,
-            [id]: {
-                ...groups[id],
-                expanded: expanded,
-            },
-        });
-    }, [expanded]);
+    // useEffect(() => {
+    //     onUpdateGroup({
+    //         ...groups,
+    //         [id]: {
+    //             ...groups[id],
+    //             expanded: expanded,
+    //         },
+    //     });
+    // }, [groups, id, expanded]);
 
     return (
         <>

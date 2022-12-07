@@ -222,16 +222,27 @@ const ClipsDirectory = () => {
         setSort(event.target.value);
     };
 
+    const handleStartDateChange = (newValue: any) => {
+        setStartDate(newValue);
+    };
+
+    const handleEndDateChange = (newValue: any) => {
+        const endOfDay = newValue?.endOf('day');
+        setEndDate(endOfDay ?? null);
+    };
+
     useEffect(() => {
         if (
             (timeInterval !== TimeInterval.Custom && previousDates.current.startDate !== startDate) ||
             (timeInterval == TimeInterval.Custom &&
+                startDate &&
+                endDate &&
                 (previousDates.current.startDate !== startDate || previousDates.current.endDate !== endDate))
         ) {
             getClipsFromService();
             previousDates.current = { startDate, endDate };
         }
-    });
+    }, [startDate, endDate]);
 
     useEffect(() => {
         getClipsFromService();
@@ -292,7 +303,7 @@ const ClipsDirectory = () => {
                         <Title title={title}>{title}</Title>
                         <Controls>
                             {broadcasters.length > 1 ? (
-                                <Select onChange={(event) => handleSortChange(event)} size="small" defaultValue={sort}>
+                                <Select onChange={handleSortChange} size="small" value={sort}>
                                     {Object.values(Sort).map((sort) => {
                                         return (
                                             <MenuItem key={sort} value={sort}>
@@ -307,9 +318,9 @@ const ClipsDirectory = () => {
                             <Select
                                 labelId="label"
                                 id="select"
-                                onChange={(event) => handleintervalChange(event)}
+                                onChange={handleintervalChange}
                                 size="small"
-                                defaultValue={timeInterval}
+                                value={timeInterval}
                             >
                                 {Object.values(TimeInterval).map((intervals) => {
                                     return (
@@ -324,18 +335,13 @@ const ClipsDirectory = () => {
                                     <DatePicker
                                         label="Start date"
                                         value={startDate}
-                                        onChange={(newValue) => {
-                                            setStartDate(newValue);
-                                        }}
+                                        onChange={handleStartDateChange}
                                         renderInput={(params) => <DateTextField {...params} size="small" />}
                                     />
                                     <DatePicker
                                         label="End date"
                                         value={endDate}
-                                        onChange={(newValue) => {
-                                            const endOfDay = newValue?.endOf('day');
-                                            setEndDate(endOfDay ?? null);
-                                        }}
+                                        onChange={handleEndDateChange}
                                         renderInput={(params) => <DateTextField {...params} size="small" />}
                                     />
                                 </LocalizationProvider>
