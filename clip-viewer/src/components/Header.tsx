@@ -60,8 +60,9 @@ const CustomTextField = styled(TextField)`
     }
 `;
 
-const Header = (props: { showDrawer: boolean; setShowDrawer: Dispatch<SetStateAction<boolean>> }) => {
-    const { showDrawer, setShowDrawer } = props;
+type HeaderProps = { showDrawer: boolean; setShowDrawer: Dispatch<SetStateAction<boolean>> };
+
+const Header = ({ showDrawer, setShowDrawer }: HeaderProps) => {
     const setCurrentUser = useUserStore((state) => state.setCurrentUser);
     const currentUser: any = useUserStore((state) => state.currentUser);
     const userFollows: any[] = useUserStore((state) => state.userFollows);

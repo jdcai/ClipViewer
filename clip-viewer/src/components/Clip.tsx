@@ -22,14 +22,14 @@ const CloseModalButton = styled(IconButton)`
     right: 0;
 `;
 
-const Clip = (props: {
+type ClipProps = {
     clip: any;
     autoPlay: boolean;
     setAutoPlay: React.Dispatch<React.SetStateAction<boolean>>;
     handleModalClose: () => void;
-}) => {
-    const { clip, autoPlay, setAutoPlay, handleModalClose } = props;
+};
 
+const Clip = ({ clip, autoPlay, setAutoPlay, handleModalClose }: ClipProps) => {
     return (
         <>
             {clip && (

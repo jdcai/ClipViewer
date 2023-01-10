@@ -36,14 +36,15 @@ const IndentedListItemButton = styled(ListItemButton)`
     overflow: hidden;
 `;
 
-const Group = (props: {
+type GroupProps = {
     id: string;
     group: GroupType;
     groups: GroupContainer;
     setEditID: Dispatch<SetStateAction<string | undefined>>;
     onUpdateGroup: (newGroups: GroupContainer) => void;
-}) => {
-    const { id, group, groups, onUpdateGroup, setEditID } = props;
+};
+
+const Group = ({ id, group, groups, onUpdateGroup, setEditID }: GroupProps) => {
     const [expanded, setExpanded] = useState(group.expanded);
     const navigate = useNavigate();
 

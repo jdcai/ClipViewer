@@ -71,14 +71,15 @@ const CustomTextField = styled(TextField)`
     }
 `;
 
-const EditGroup = (props: {
+type EditGroupProps = {
     id: string;
     group: GroupType;
     groups: GroupContainer;
     setEditID: Dispatch<SetStateAction<string | undefined>>;
     onUpdateGroup: (newGroups: GroupContainer) => void;
-}) => {
-    const { id, group, groups, onUpdateGroup, setEditID } = props;
+};
+
+const EditGroup = ({ id, group, groups, onUpdateGroup, setEditID }: EditGroupProps) => {
     const userFollows: any[] = useUserStore((state) => state.userFollows);
 
     const [isAddingUser, setIsAddingUser] = useState(false);
